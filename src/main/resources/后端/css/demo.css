@@ -1,0 +1,337 @@
+.demo {
+    /* for IE10+ touch devices */
+    touch-action:none;
+}
+
+.flowchart-demo .window {
+    border: 1px solid #346789;
+    box-shadow: 2px 2px 19px #aaa;
+    -o-box-shadow: 2px 2px 19px #aaa;
+    -webkit-box-shadow: 2px 2px 19px #aaa;
+    -moz-box-shadow: 2px 2px 19px #aaa;
+    -moz-border-radius: 0.5em;
+    border-radius: 0.5em;
+    opacity: 0.8;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    cursor: pointer;
+    text-align: center;
+    z-index: 20;
+    position: absolute;
+    background-color: #eeeeef;
+    color: black;
+    font-family: helvetica, sans-serif;
+    padding: 0.5em;
+    font-size: 0.9em;
+    -webkit-transition: -webkit-box-shadow 0.15s ease-in;
+    -moz-transition: -moz-box-shadow 0.15s ease-in;
+    -o-transition: -o-box-shadow 0.15s ease-in;
+    transition: box-shadow 0.15s ease-in;
+}
+
+.flowchart-demo .window:hover {
+    box-shadow: 2px 2px 19px #444;
+    -o-box-shadow: 2px 2px 19px #444;
+    -webkit-box-shadow: 2px 2px 19px #444;
+    -moz-box-shadow: 2px 2px 19px #444;
+    opacity: 0.6;
+}
+
+.flowchart-demo .active {
+    border: 1px dotted green;
+}
+
+.flowchart-demo .hover {
+    border: 1px dotted red;
+}
+
+#flowchartWindow1 {
+    top: 34em;
+    left: 5em;
+}
+
+#flowchartWindow2 {
+    top: 7em;
+    left: 36em;
+}
+
+#flowchartWindow3 {
+    top: 27em;
+    left: 48em;
+}
+
+#flowchartWindow4 {
+    top: 23em;
+    left: 22em;
+}
+
+.flowchart-demo .jtk-connector {
+    z-index: 4;
+}
+
+.flowchart-demo .jtk-endpoint, .endpointTargetLabel, .endpointSourceLabel {
+    z-index: 21;
+    cursor: pointer;
+}
+
+.flowchart-demo .aLabel {
+    background-color: white;
+    padding: 0.4em;
+    font: 12px sans-serif;
+    color: #444;
+    z-index: 21;
+    border: 1px dotted gray;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.flowchart-demo .aLabel.jtk-hover {
+    background-color: #5C96BC;
+    color: white;
+    border: 1px solid white;
+}
+
+.window.jtk-connected {
+    border: 1px solid green;
+}
+
+.jtk-drag {
+    outline: 4px solid pink !important;
+}
+
+path, .jtk-endpoint {
+    cursor: pointer;
+}
+
+.jtk-overlay {
+    background-color:transparent;
+}
+
+.content .left{
+	float:left;
+}
+
+.content .center{
+	float:left;
+	width:65%;
+	position: relative;
+	margin-left:10%;
+}
+
+.content .center .jtk-demo-main{
+	margin-top: 50px;
+}
+
+
+.content .right{
+	position: relative;
+	float:left;
+	width:15%;
+	margin-right:5%;
+}
+
+.properties{
+	float: left;
+    position: relative;
+    margin-left: 13%;
+    margin-top: 50px;
+    width: 77.5%;
+	background-color:white;
+}
+
+.propertiesmain{
+	width:80%;
+	float: left;
+	min-height:250px;
+	padding-left:10px;
+	padding-right:10px;
+	padding-bottom:5px;
+}
+
+.properties-save{
+	float:left;
+}
+
+.properties-save button{
+	margin-top:20px;
+	margin-left:5px;
+}
+
+.content .right div.rightmain{ 
+	position: relative;
+    margin-top: 50px;
+	border:1px solid;
+	width:100%;
+	height:100%;
+	background-color:white;
+	height:auto;
+	min-height:700px;
+}
+
+
+.content .right div.rightmain .input-group{ 
+	margin-bottom: 10px;
+}
+
+.nav.header{
+	float: left;
+    position: relative;
+    margin-left: 12.5%;
+	margin-top:50px;
+	width:77.5%;
+}
+
+.subpanel{
+	left: 0;
+    top: 0;
+	position:fixed;
+	width:100%;
+	height:100%;
+	z-index:999;
+	display:none;
+}
+
+
+.subpanel .backshadow{
+	opacity: 1;
+	opacity: 0.5;
+	background-color:#CCC;
+	width:100%;
+	height:100%;
+	position:fixed;
+}
+
+.subpanel > .panel{
+	opacity: 1;
+	position:fixed;
+	background-color:white;
+	margin-left:12.5%;
+	margin-top:10%;
+	width:60%;
+	border:1px solid black;
+}
+
+
+.pluginPanel .mainpanel{
+	opacity: 1;
+	position:fixed;
+	background-color:white;
+	margin-left:12.5%;
+	margin-top:10%;
+	border:1px solid black;
+}
+
+body > div.subpanel.new-args > div.panel.panel-primary{
+	width:40%;
+}
+
+body > div.subpanel.new-exes > div.panel.panel-success{
+	width:40%;
+}
+
+body > div.subpanel.new-next > div.panel.panel-info{
+	width:40%;
+}
+
+.subpanel .submit-button{
+	margin-top:10px;
+}
+
+.more-block{
+	float:right;
+	margin-top:5px;
+}
+
+
+.row{
+	margin-top:10px;
+}
+
+.choose-properties{
+	z-index:99;
+	display:none;
+	position:absolute;
+	left:0;
+	top:0;
+	width:200px;
+}
+.singleplugin{
+	width:100%;
+	float:left;
+	min-height:40px;
+}
+
+.singleplugin .btn-group{
+	margin-left:10px;
+}
+.singleplugin >.plugin-method{
+	float:left;
+	margin-left:10px;
+}
+
+.maincontent{
+	padding-top:50px;
+	padding-left:0px;
+	background: #f5f5f5;
+	
+}
+
+.maincontent .leftbody{
+	padding-top:20px;
+	width:285px;
+    color: #333;
+	height:100%;
+	float:left;
+}
+
+.maincontent .rightbody{
+	background: white;
+	margin-left: 285px;
+	height:100%;
+}
+
+.tablediv{
+    background-color: #fff;
+    border-color: #ddd;
+    border-width: 1px;
+    border-radius: 4px 4px 0 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+	position: relative;
+    padding: 45px 15px 15px;
+    margin: 0 15px 15px;
+}
+
+
+.datatablediv{
+	overflow:scroll;
+    background-color: #fff;
+    border-color: #ddd;
+    border-width: 1px;
+    border-radius: 4px 4px 0 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+	position: relative;
+}
+
+.pagehelper{
+	padding-right:30px;
+	float:right;
+}
+
+.more-column-div{
+	display:none;
+}
+
+.dataDiv ul{
+	display: table;
+}
+
+.newtabpanel{
+	display:none;
+}
+
+.added-column{
+	display:none;
+}

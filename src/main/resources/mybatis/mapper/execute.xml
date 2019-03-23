@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="executeDao">
+	<resultMap id="execute" type="com.lin.entity.ExecuteEntity">
+		<id column="id" property="id" />
+		<result column="method" property="method" />
+		<result column="block" property="block" />
+		<result column="executeName" property="executeName" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into Execute (id,method,block,executeName) values(
+		#{id},#{method},
+		#{block},#{executeName} )
+	</insert>
+
+	<select id="findFromTempByBlock" resultMap="execute" parameterType="int">
+		select * from Execute where block= #{block}
+	</select>
+	
+	<select id="findFromTempByBlocks" resultMap="execute" parameterType="map">
+	    select * from Execute where block in  (${blocks})
+	</select>
+
+	<select id="findFromTempById" resultMap="execute" parameterType="int">
+		select *
+		from Execute where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.ExecuteEntity">
+		update Execute set
+		method=#{method},block=#{block},executeName=#{executeName} where
+		id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp">
+		delete from Execute where id= #{id}
+	</delete>
+
+</mapper>

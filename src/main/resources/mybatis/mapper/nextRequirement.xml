@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="nextRequirementDao">
+	<resultMap id="nextRequirement" type="com.lin.entity.NextRequirementEntity">
+		<id column="id" property="id" />
+		<result column="next" property="next" />
+		<result column="param1" property="param1" />
+		<result column="method" property="method" />
+		<result column="param2" property="param2" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.NextRequirementEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into NextRequirement (id,next,param1,method,param2) values(
+		#{id},#{next},#{param1}, #{method},#{param2} )
+	</insert>
+
+	<insert id="addMapToTemp" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+		insert into NextRequirement (id,next,param1,method,param2) values(
+		#{id},#{next},#{param1}, #{method},#{param2} )
+	</insert>
+	
+
+	<select id="findFromTempByNext" resultMap="nextRequirement"
+		parameterType="int">
+		select *
+		from NextRequirement where next= #{next}
+	</select>
+
+	<select id="findFromTempById" resultMap="nextRequirement"
+		parameterType="int">
+		select *
+		from NextRequirement where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.NextRequirementEntity">
+		update NextRequirement
+		set
+		next=#{next},param1=#{param1},method=#{method},param2=#{param2}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp" parameterType="int">
+		delete from
+		NextRequirement where id= #{id}
+	</delete>
+
+	<delete id="deleteByNextFromTemp" parameterType="int">
+		delete from NextRequirement where next= #{id}
+	</delete>
+
+</mapper>

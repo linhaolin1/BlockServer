@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="processArgumentDao">
+	<resultMap id="processArgument" type="com.lin.entity.ProcessArgumentEntity">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="type" property="type" />
+		<result column="process" property="process" />
+		<result column="necessary" property="necessary" />
+		<result column="complex" property="complex" />
+		<result column="mutitype" property="mutitype" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.ProcessArgumentEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ProcessArgument
+		(id,name,type,process,necessary,complex,mutitype)
+		values(
+		#{id},#{name},#{type},#{process},#{necessary},#{complex},#{mutitype})
+	</insert>
+
+	<select id="findFromTempById" resultMap="processArgument"
+		parameterType="int">
+		select *
+		from ProcessArgument where id= #{id}
+	</select>
+
+	<select id="findFromTempByProcess" resultMap="processArgument"
+		parameterType="int">
+		select *
+		from ProcessArgument where process= #{process}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.ProcessArgumentEntity">
+		update ProcessArgument
+		set
+		name=#{name},type=#{type},process=#{process},necessary=#{necessary},complex=#{complex},mutitype=#{mutitype}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp">
+		delete from ProcessArgument where id= #{id}
+	</delete>
+
+	<delete id="deleteNotExistArgs" parameterType="map">
+		delete from ProcessArgument where process= #{process}
+		and id not in
+		<foreach collection="ids" index="index" item="single" open="("
+			separator="," close=")">
+			#{single}
+		</foreach>
+
+	</delete>
+
+</mapper>

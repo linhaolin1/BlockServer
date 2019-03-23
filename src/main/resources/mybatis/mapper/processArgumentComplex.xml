@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="processArgumentComplexDao">
+	<resultMap id="processArgumentComplex" type="com.lin.entity.ProcessArgumentComplexEntity">
+		<id column="id" property="id" />
+		<result column="argument" property="argument" />
+		<result column="name" property="name" />
+	</resultMap>
+
+	<insert id="save" parameterType="com.lin.entity.ProcessArgumentComplexEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ProcessArgumentComplex
+		(id,name,argument)
+		values(
+		#{id},#{name},#{argument})
+	</insert>
+
+	<select id="findByArgument" resultMap="processArgumentComplex"
+		parameterType="int">
+		select *
+		from ProcessArgumentComplex where argument=
+		#{argument}
+	</select>
+
+	<select id="findByProcess" resultMap="processArgumentComplex"
+		parameterType="int">
+		select *
+		from ProcessArgumentComplex complex where exists
+		( select * from ProcessArgument args where complex.argument=args.id
+		and args.process= #{process})
+	</select>
+
+	<delete id="delete">
+		delete from ProcessArgumentComplex where id= #{id}
+	</delete>
+
+	<delete id="deleteByArgument" parameterType="int">
+		delete from
+		ProcessArgumentComplex where argument= #{argument}
+	</delete>
+
+</mapper>

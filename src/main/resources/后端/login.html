@@ -1,0 +1,127 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+		<meta charset="UTF-8">
+		<title>智慧交通</title>
+		<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<style type="text/css">
+			.login-content{
+				width:100%;
+				height:360px;
+				position:fixed;
+				top:120px;
+			}
+			.login-box{
+				width:320px;
+				position: absolute;
+				left:50%;
+				top:0px;
+				bottom:0px;
+				margin-left:-160px;
+				margin-top:80px;
+				background:#FFFFFF;
+				padding:10px 20px;
+			}
+			.copyright{
+				width:100%;
+				position:fixed;
+				bottom:0px;
+				height:30px;
+				text-align:center;
+				line-height:30px;
+				color:#FFF;
+			}
+		</style>
+		<script type="text/javascript">
+			$(function(){
+				$("#username").focus();
+				$("#username").on("click",function(){
+					$("message").hide();
+				});
+				$("#password").on("click",function(){
+					$("message").hide();
+				});
+				$("#username").on("input",function(){
+					$(this).tooltip("destroy");
+				});
+				$("#password").on("input",function(){
+					$(this).tooltip("destroy");
+				});
+				$("body").keydown(function(){
+					if (event.keyCode == "13") {
+						$("#btnSubmit").click();
+					}
+				});
+				$("#btnSubmit").click(function(){
+					if($("#username").val() === ""){
+						$("#username").attr("title","用户名不能为空");
+						$("#username").tooltip("show");
+						return;
+					}
+					if($("#password").val() === ""){
+						$("#password").attr("title","密码不能为空");
+						$("#password").tooltip("show");
+						return;
+					}
+					
+					window.location.href='list.html'
+					
+					/**
+					$.ajax({
+						url:"login",
+						type:"POST",
+						dataType:"json",
+						cache:false,
+						contentType:"application/json",
+						data:JSON.stringify({username:$("#username").val(),password:$("#password").val()}),
+						success:function(result){
+							if(result.ret == 0){
+								window.location.href = "index";
+							}else{
+								if(result.msg){
+									$("#message").text(result.msg);
+									$("#message").show();
+								}
+								alert(result.msg); 
+							}
+						},
+						error:function(){
+							alert("网络错误，请稍后再试");
+						}
+					});
+				   */
+				});
+			})
+		</script>
+	</head>
+	<body class="main-body" style="background: url(images/login_bg.jpg);">
+		<div class="login-content">
+			<div class="row">
+				<div class="col-md-12" style="text-align:center;"><h2 style="color:#FFFFFF;">积木系统</h2></div>
+			</div>
+			<div class="login-box">
+				<div class="row">
+					<div class="col-md-12"><h4>登录</h4><hr style="border-color:#DDD;margin:10px -5px;"></div>
+				</div>
+				<div style="margin-top:30px;">
+					<div class="form-group">
+						<div class="input-group">
+							<span class="input-group-addon" style="background-color:transparent"><i class="fa fa-user"></i></span>
+							<input id="username" name="username" type="text" class="form-control" placeholder="用户名" style="height:40px;" data-toggle="tooltip" data-placement="top" value="admin">
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="input-group">
+							<span class="input-group-addon" style="background-color:transparent"><i class="fa fa-lock"></i></span>
+							<input id="password" name="password" type="password" class="form-control input-md" placeholder="密码" style="height:40px;" data-toggle="tooltip" data-placement="top" value="123456">
+						</div>
+					</div>
+					<div id="message" class="alert alert-danger" role="alert" style="height:30px;line-height:30px;margin:0px;padding:0px 15px;font-size:11px;display:none;"></div>
+					<button id="btnSubmit" type="button" class="btn btn-success col-xs-12" style="margin-top:10px;">确定</button>
+				</div>
+			</div>
+		</div>
+	
+</body></html>

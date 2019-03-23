@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pluginMethodDao">
+	<resultMap id="pluginMethod" type="com.lin.entity.PluginMethodEntity">
+		<id column="id" property="id" />
+		<result column="plugin" property="plugin" />
+		<result column="name" property="name" />
+		<result column="methodName" property="methodName" />
+		<result column="introduction" property="introduction" />
+		<result column="returnType" property="returnType" />
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.PluginMethodEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into PluginMethod
+		(id,plugin,name,methodName,introduction,returnType)
+		values(
+		#{id},#{plugin},#{name},#{methodName},#{introduction},#{returnType})
+	</insert>
+
+	<select id="findById" resultMap="pluginMethod" parameterType="int">
+		select *
+		from PluginMethod where id= #{id}
+	</select>
+
+	<select id="findByPlugin" resultMap="pluginMethod"
+		parameterType="int">
+		select *
+		from PluginMethod where plugin= #{plugin}
+	</select>
+	
+	<select id="findByPluginAndMethodName" resultType="int" parameterType="com.lin.entity.PluginMethodEntity">
+		select id from PluginMethod 
+		<where>
+			plugin=#{plugin} and 
+			methodName=#{methodName}
+		</where>
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.PluginMethodEntity">
+		update PluginMethod set
+		plugin=#{plugin},name=#{name},methodName=#{methodName},introduction=#{introduction},returnType=#{returnType}
+		where id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from PluginMethod where id= #{id}
+	</delete>
+
+</mapper>

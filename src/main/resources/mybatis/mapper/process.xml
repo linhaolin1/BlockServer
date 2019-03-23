@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="processDao">
+	<resultMap id="process" type="com.lin.entity.ProcessEntity">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="intro" property="intro" />
+		<result column="startBlock" property="startBlock" />
+		<result column="endBlock" property="endBlock" />
+		<result column="dataSource" property="dataSource" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.ProcessEntity" useGeneratedKeys="true" keyProperty="id">
+		
+		insert into Process
+		(id,name,startBlock,endBlock,intro,dataSource)
+		values(#{id},#{name},#{startBlock},#{endBlock},#{intro},#{dataSource})
+	</insert>
+
+	<select id="findFromTempById" resultMap="process" parameterType="int">
+		select *
+		from Process where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.ProcessEntity">
+		update Process set
+		name=#{name},startBlock=#{startBlock},endBlock=#{endBlock},intro=#{intro},dataSource=#{dataSource}
+		where
+		id=#{id}
+	</update>
+	
+	<select id="findAll" resultMap="process" >
+	    select * from Process
+	</select>
+
+	<delete id="deleteFromTemp">
+		delete from Process where id= #{id}
+	</delete>
+
+	<insert id="copyProcessFromMainToTemp" parameterType="int">
+		select 1
+		<!-- delete from NextRequirement where next in ( select n.id from Next 
+			n,Block b where b.process=#{id} and n.block=b.id ); delete from ExecuteParam 
+			where execute in ( select n.id from Execute n,Block b where b.process=#{id} 
+			and n.block=b.id ); delete from Next where block in ( select id from Block 
+			where process=#{id} ) delete from Execute where block in ( select id from 
+			Block where process=#{id} ) delete from Process where id=#{id}; delete from 
+			Block where process=#{id}; delete from ProcessArgument where process=#{id}; 
+			insert into ProcessArgument select * from MainProcessArgument where process=#{id}; 
+			insert into Block select * from MainBlock where process=#{id}; insert into 
+			Process select * from MainProcess where id=#{id}; insert into Execute select 
+			* from MainExecute where block in ( select id from MainBlock where process=#{id} 
+			); insert into Next select * from MainNext where block in ( select id from 
+			MainBlock where process=#{id} ); insert into ExecuteParam select * from MainExecuteParam 
+			where execute in ( select n.id from MainExecute n,MainBlock b where b.process=#{id} 
+			and n.block=b.id ); insert into NextRequirement select * from MainNextRequirement 
+			where next in ( select n.id from MainNext n,MainBlock b where b.process=#{id} 
+			and n.block=b.id ); -->
+	</insert>
+
+	<insert id="copyProcessFromTempToMain" parameterType="int">
+	    select 1
+		<!-- insert into MainProcess select * from Process where id=#{id}; insert 
+			into MainProcessArgument select * from ProcessArgument where process=#{id}; 
+			insert into MainBlock select * from Block where process=#{id}; insert into 
+			MainExecute select * from Execute where block in ( select id from Block where 
+			process=#{id} ); insert into MainNext select * from Next where block in ( 
+			select id from Block where process=#{id} ); insert into MainExecuteParam 
+			select * from ExecuteParam where execute in ( select n.id from Execute n,Block 
+			b where b.process=#{id} and n.block=b.id ); insert into MainNextRequirement 
+			select * from NextRequirement where next in ( select n.id from Next n,Block 
+			b where b.process=#{id} and n.block=b.id ); -->
+	</insert>
+
+</mapper>

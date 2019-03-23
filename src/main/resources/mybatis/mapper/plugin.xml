@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pluginDao">
+	<resultMap id="plugin" type="com.lin.entity.PluginEntity">
+		<id column="id" property="id" />
+		<result column="type" property="type" />
+		<result column="belongType" property="belongType" />
+		<result column="language" property="language" />
+		<result column="name" property="name" />
+		<result column="introduction" property="introduction" />
+		<result column="fileName" property="fileName" />
+		<result column="className" property="className" />
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.PluginEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into Plugin
+		(id,type,belongType,language,name,introduction,fileName,className)
+		values(
+		#{id},#{type},#{belongType},#{language},#{name},#{introduction},#{fileName},#{className})
+	</insert>
+
+	<select id="findByClass" resultMap="plugin" parameterType="map">
+		select * from Plugin where className=#{className} 
+	</select>
+	
+	<select id="findAll" resultMap="plugin">
+	    select * from Plugin
+	</select>
+	
+	<select id="findPlugins" parameterType="map" resultMap="plugin">
+	    select * from Plugin where name like '%'||${name}||'%' and type= ${type} 
+	</select>
+
+	<select id="findById" resultMap="plugin" parameterType="int">
+		select *
+		from Plugin where id= #{id}
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.PluginEntity">
+		update Plugin set
+		type=#{type},belongType=#{belongType},language=#{language},name=#{name},introduction=#{introduction},fileName=#{fileName},className=#{className}
+		where id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from Plugin where id= #{id}
+	</delete>
+
+</mapper>

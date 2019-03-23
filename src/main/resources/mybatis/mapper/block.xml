@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="blockDao">
+	<resultMap id="block" type="com.lin.entity.BlockEntity">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="process" property="process" />
+		<result column="positionX" property="positionX" />
+		<result column="positionY" property="positionY" />
+
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.BlockEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into Block (id,name,positionX,positionY,process)
+		values(#{id},
+		#{name},#{positionX},#{positionY},#{process} )
+	</insert>
+
+	<select id="findFromTempByProcess" resultMap="block"
+		parameterType="int">
+		select * from Block where process= #{processId}
+	</select>
+
+	<select id="findFromTempById" resultMap="block" parameterType="int">
+		select *
+		from Block where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.BlockEntity">
+		update Block set
+		name=#{name}
+		,positionX=#{positionX},positionY=#{positionY} where
+		id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp">
+		delete from Block where id= #{id}
+	</delete>
+
+</mapper>

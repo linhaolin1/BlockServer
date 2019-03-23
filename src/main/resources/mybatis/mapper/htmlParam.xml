@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="htmlParamDao">
+	<resultMap id="htmlParam" type="com.lin.entity.HtmlParamEntity">
+		<id column="id" property="id" />
+		<result column="width" property="width" />
+		<result column="height" property="height" />
+		<result column="top" property="top" />
+		<result column="left" property="left" />
+		<result column="column" property="column" />
+		<result column="row" property="row" />
+		<result column="type" property="type" />
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.DataSourceEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into htmlParam
+		(id,width,height,top,left,column,row,type)
+		values(#{id},#{width},#{height},#{top},#{left},#{column},#{row},#{type}
+		)
+	</insert>
+
+	<select id="findById" resultMap="htmlParam" parameterType="int">
+		select *
+		from htmlParam where id= #{id}
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.DataSourceEntity">
+		update htmlParam set
+		width=#{width},height=#{height},top=#{top},left=#{left},
+		column=#{column},row=#{row},type=#{type}
+		where
+		id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from htmlParam where id= #{id}
+	</delete>
+
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="executeParamDao">
+	<resultMap id="executeParam" type="com.lin.entity.ExecuteParamEntity">
+		<id column="id" property="id" />
+		<result column="execute" property="execute" />
+		<result column="pluginMethodParam" property="pluginMethodParam" />
+		<result column="param" property="param" />
+		<result column="type" property="type" />
+		<result column="fieldName" property="fieldName" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteParamEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ExecuteParam (id,execute,pluginMethodParam,param,fieldName,type)
+		values(
+		#{id},#{execute},#{pluginMethodParam}, #{param},#{fieldName},#{type})
+	</insert>
+
+	<select id="findFromTempByExecute" resultMap="executeParam"
+		parameterType="int">
+		select * from ExecuteParam where execute= #{execute}
+	</select>
+
+	<select id="findMethodParamFromTempByExecute" resultMap="executeParam"
+		parameterType="int">
+		select * from ExecuteParam where execute= #{execute}
+	</select>
+
+	<select id="findMethodReturnParamFromTempByExecute" resultMap="executeParam"
+		parameterType="int">
+		select * from ExecuteParam where execute= #{execute} limit 1
+	</select>
+
+
+	<select id="findFromTempByBlocks" resultMap="executeParam"
+		parameterType="map">
+		select * from ExecuteParam where execute in ( select
+		n.id from Execute
+		n,Block b where b.id in (${blocks}) and n.block=b.id
+		);
+	</select>
+
+	<select id="findFromTempById" resultMap="executeParam"
+		parameterType="int">
+		select *
+		from ExecuteParam where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.ExecuteParamEntity">
+		update ExecuteParam set
+		execute=#{execute},pluginMethodParam=#{pluginMethodParam},param=#{param},fieldName=#{fieldName},type=#{type}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp" parameterType="int">
+		delete from
+		ExecuteParam where
+		id= #{id}
+	</delete>
+
+	<delete id="deleteFromTempByExecute" parameterType="int">
+		delete from
+		ExecuteParam where execute= #{execute}
+	</delete>
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dynamicRequestDao">
+	<resultMap id="dynamicRequest" type="com.lin.entity.DynamicRequestEntity">
+		<id column="id" property="id" />
+		<result column="url" property="url" />
+		<result column="processId" property="processId" />
+	</resultMap>
+
+	<insert id="addNewDynamicRequest" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+		insert into dynamicRequest (id,url,processId)
+		values(#{id},#{url},#{processId})
+	</insert>
+
+	<select id="findByUrl" resultMap="dynamicRequest" parameterType="map">
+		select *
+		from dynamicRequest where url= #{url}
+	</select>
+
+	<delete id="deleteByProcess">
+		delete from dynamicRequest where processId=
+		#{processId}
+	</delete>
+
+	<select id="findAll" resultMap="dynamicRequest">
+		select *
+		from dynamicRequest
+	</select>
+
+
+</mapper>

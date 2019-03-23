@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="paramDao">
+	<resultMap id="param" type="com.lin.entity.ParamEntity">
+		<id column="id" property="id" />
+		<result column="paramValue" property="paramValue" />
+		<result column="belong" property="belong" />
+	</resultMap>
+
+	<insert id="addToTemp" parameterType="com.lin.entity.ParamEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into Param (paramValue,belong) values(#{id},
+		#{paramValue},#{belong})
+	</insert>
+
+	<select id="findFromTempByNext" resultMap="param" parameterType="int">
+		select *
+		from Param where next= #{next}
+	</select>
+
+	<select id="findFromTempById" resultMap="param" parameterType="int">
+		select *
+		from Param where id= #{id}
+	</select>
+
+	<update id="updateToTemp" parameterType="com.lin.entity.ParamEntity">
+		update Param set
+		paramValue=#{paramValue},belong=#{belong}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteFromTemp">
+		delete from Param where id= #{id}
+	</delete>
+
+</mapper>

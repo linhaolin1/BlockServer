@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="blockDataSourceParamDao">
+	<resultMap id="blockDataSourceParam" type="com.lin.entity.BlockDataSourceParamEntity">
+		<id column="id" property="id" />
+		<result column="block" property="block" />
+		<result column="dataSourceParam" property="dataSourceParam" />
+		<result column="param" property="param" />
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.BlockDataSourceParamEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into BlockDataSourceParam (block,dataSourceParam,param)
+		values(#{block},#{dataSourceParam},#{param} )
+	</insert>
+
+	<select id="findByDataSource" resultMap="blockDataSourceParam"
+		parameterType="int">
+		select * from BlockDataSourceParam where block= #{block}
+	</select>
+
+	<select id="findById" resultMap="blockDataSourceParam"
+		parameterType="int">
+		select *
+		from BlockDataSourceParam where id= #{id}
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.BlockDataSourceParamEntity">
+		update BlockDataSourceParam set
+		block=#{block},dataSourceParam=#{dataSourceParam},param=#{param} where
+		id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from BlockDataSourceParam where id= #{id}
+	</delete>
+
+</mapper>

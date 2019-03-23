@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+		<link rel="shortcut icon" type="image/png" href="../../img/favicon.png">
+		<title>流程编辑</title>
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="css/jsPlumbToolkit-defaults.css">
+		<link rel="stylesheet" href="css/jsPlumbToolkit-demo.css">
+		<link rel="stylesheet" href="css/demo.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+		<script src="js/xss.js"></script>
+		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	</head>
+	<body data-demo-id="flowchart" style="background-color: #273a6a;">
+		<div class="container-fluid">
+			<nav class="navbar navbar-inverse navbar-fixed-top">
+			  <div class="container-fluid">
+				<div class="navbar-header">
+				  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				  </button>
+				  <a class="navbar-brand" href="#">积木系统</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+				  <ul class="nav navbar-nav navbar-right">
+					<li><a href="list.html">流程管理</a></li>
+					<li><a href="datalist.html">数据管理</a></li>
+				  </ul>
+				  <form class="navbar-form navbar-right">
+					<input type="text" class="form-control" placeholder="Search...">
+				  </form>
+				</div>
+			  </div>
+			</nav>
+
+			<div class="properties">
+				<div>
+					<div class="propertiesmain">
+						<div class="input-group">
+							<label for="name">流程名</label>
+							<input type="text" class="form-control process-name" placeholder="流程名" aria-describedby="basic-addon1">
+							
+						</div>
+						<div class="form-group">
+							<label for="name">流程说明</label>
+							<textarea class="form-control process-intro" rows="3"></textarea>
+						</div>
+						<div class="form-group process-in-args">
+							<label for="name">流程输入参数</label>
+							<div>
+								
+								<button class="btn btn-primary moreArgs" type="button" >
+									<span class="badge">+</span></button>
+							</div>
+						</div> 
+						<div class="form-group process-out-args">
+							<label for="name">流程输出参数</label>
+							<div>
+								<button class="btn btn-primary moreArgs" type="button" >
+									<span class="badge">+</span></button>
+							</div>
+						</div>
+					</div>
+					<div class="properties-save">
+						<button type="button" class="btn btn-primary save-process">保存流程内容</button>
+					</div>
+				</div>
+			</div>
+			<div class="content">
+				<div class="left "></div>
+				<div class="center">
+					<div class="jtk-demo-main">
+						<!-- demo -->
+						<div class="jtk-demo-canvas canvas-wide flowchart-demo jtk-surface jtk-surface-nopan" id="canvas">
+							
+							<button class="btn btn-primary more-block" type="button">新的流程分块</button></div>
+						<!-- /demo --></div>
+				</div>
+				<div class="right">
+					<div class="rightmain">
+						<h3>方法名</h3>
+						<span class="label label-default plugin-name">插件名</span>
+						<h5 class="input-intro">输入内容
+							<span class="label label-default"></span></h5>
+							
+						
+						<div class="input-group param-group">
+							<span class="input-group-addon" id="basic-addon1">参数1</span>
+							<input type="text" class="form-control show-choose-pro" placeholder="Username" aria-describedby="basic-addon1"></div>
+
+						<div class="input-group param-group">
+							<span class="input-group-addon" id="basic-addon1">参数2</span>
+							<input type="text" class="form-control show-choose-pro" placeholder="Username" aria-describedby="basic-addon1"></div>
+						<div class="input-group param-group">
+							<span class="input-group-addon" id="basic-addon1">参数3</span>
+							<input type="text" class="form-control show-choose-pro" placeholder="Username" aria-describedby="basic-addon1"></div>
+						
+						<h5 class="output-intro">输出内容
+							<span class="label label-default"></span></h5>	
+						
+						<div class='saveargs'>
+							<button class="btn btn-default" type="button">保存参数</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class=""></div>
+		</div>
+		<div class="subpanel new-args closeable-panel">
+			<div class="backshadow"></div>
+			<div class="panel panel-primary ">
+				<div class="panel-heading">增加新参数
+					<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span></button>
+				</div>
+				<div class="panel-body">
+					<div class="input-group">
+						<span class="input-group-addon" id="basic-addon1">参数名称</span>
+						<input type="text" class="form-control" aria-label="...">
+						<div class="input-group-btn args-necessary">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="0">必填
+								<span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li role="0">
+									<a href="javascript:(0)">必填</a></li>
+								<li role="1">
+									<a href="javascript:(0)">非必填</a></li>
+							</ul>
+						</div>
+						<div class="input-group-btn args-complex">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="0">普通
+								<span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li role="0">
+									<a href="javascript:(0)">普通</a></li>
+								<li role="1">
+									<a href="javascript:(0)">复杂</a></li>
+							</ul>
+						</div>
+						<div class="input-group-btn args-mutitype">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="0">单个
+								<span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li role="0">
+									<a href="javascript:(0)">单个</a></li>
+								<li role="1">
+									<a href="javascript:(0)">多个</a></li>
+							</ul>
+						</div>
+						<!-- /btn-group --></div>
+					<div class="added-column">
+						<div>
+							<button type="button" class="btn btn-default more-column">+</button>
+						</div>
+						<div class="more-column-div form-inline">
+							<div class="form-group">
+								<div class="input-group">
+								  <div class="input-group-addon">数据列名称</div>
+								  <input type="text" class="form-control column-name"  placeholder="名称">
+								</div>
+							</div>
+							<button type="button" class="btn btn-primary">确定</button>
+							<button type="button" class="btn btn-warning">取消</button>
+						</div>
+					
+						<table class="table">
+							<thead>
+								<tr>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+						<button type="button" class="btn btn-default submitsub">确定</button>
+						<button type="button" class="btn btn-default closesub">取消</button></div>
+				</div>
+			</div>
+		</div>
+		<div class="subpanel new-block closeable-panel">
+			<div class="backshadow"></div>
+			<div class="panel panel-success ">
+				<div class="panel-heading">增加新流程分块
+					<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span></button>
+				</div>
+				<div class="panel-body">
+					<div class="input-group">
+						<span class="input-group-addon" id="basic-addon1">分块名称</span>
+						<input type="text" class="form-control" aria-label="..."></div>
+					<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+						<button type="button" class="btn btn-default submitsub">确定</button>
+						<button type="button" class="btn btn-default closesub">取消</button></div>
+				</div>
+			</div>
+		</div>
+		<div class="subpanel new-next closeable-panel">
+			<div class="backshadow"></div>
+			<div class="panel panel-info ">	
+				<div class="panel-heading">设置执行条件
+					<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span></button>
+				</div>
+				<div class="panel-body">
+					<div class="input-group condition-row">
+						<span class="input-group-addon" id="basic-addon1">执行条件名称</span>
+						<input type="text" class="form-control" aria-label="...">
+					</div>
+					<!-- /.row -->
+					<div class="row condition-row">
+						<div class="col-lg-12">
+							<div class="input-group">
+								<span class="input-group-addon">条件1</span>
+								<input type="text" class="form-control show-choose-pro" aria-label="...">
+								<div class="input-group-btn">
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" compare="=">=
+										<span class="caret"></span></button>
+									<ul class="dropdown-menu dropdown-menu-right">
+										<li>
+											<a href="javascript:(0)" compare="=">=</a></li>
+										<li>
+											<a href="javascript:(0)" compare=">">></a></li>
+										<li>
+											<a href="javascript:(0)" compare="<"><</a></li>
+										<li>
+											<a href="javascript:(0)" compare=">=">>=</a></li>
+										<li>
+											<a href="javascript:(0)" compare="<="><=</a></li>
+										<li>
+											<a href="javascript:(0)" compare="<>">不等于</a></li>
+										<li>
+											<a href="javascript:(0)" compare="like">包含</a></li>
+										<li>
+											<a href="javascript:(0)" compare="not like">不包含</a></li>
+										<li>
+											<a href="javascript:(0)" compare="pattern">匹配正则表达式</a></li>		
+									</ul>
+								</div>
+								<!-- /btn-group -->
+								<input type="text" class="form-control show-choose-pro" aria-label="..."></div>
+							<!-- /input-group --></div>
+						<!-- /input-group --></div>
+					<!-- /.col-lg-6 -->
+					<div class="btn-group pull-left submit-button" role="group" aria-label="group-btn">
+						<button type="button" class="btn btn-default more-condition">+</button>
+					</div >
+					<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+						<button type="button" class="btn btn-default submitsub">确定</button>
+						<button type="button" class="btn btn-default closesub">取消</button></div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="subpanel plugin-panel closeable-panel">
+			<div class="backshadow"></div>
+			<div class="panel panel-info ">
+				<div class="panel-heading">选择插件
+					<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span></button>
+				</div>
+				<div class="panel-body">
+					<div class="input-group condition-row">
+						<span class="input-group-addon" id="basic-addon1">执行条件名称</span>
+						<input type="text" class="form-control" aria-label="...">
+					</div>
+					<div class="panelContent">
+						<div class="paneltype paneltype1">
+							<h3>数据管理类</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+									<div class="plugin-method">
+										<div class="btn-group" role="group" aria-label="...">
+										  <button type="button" class="btn btn-primary active">Right</button>
+										</div>
+										<div class="btn-group" role="group" aria-label="...">
+										  <button type="button" class="btn btn-primary">Left</button>
+										</div>
+
+
+									
+									</div>
+								</div>
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype paneltype2">
+							<h3>格式转换类</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype paneltype3">
+							<h3>外部请求类</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype">
+							<h3>工具类</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+						<button type="button" class="btn btn-default submitsub">确定</button>
+						<button type="button" class="btn btn-default closesub">取消</button></div>
+				</div>
+			</div>
+			<div class="center border mainpanel">
+				<div class="panelHeader"></div>
+			</div>
+		</div>
+		
+		<div class="choose-properties closeable-panel">
+		
+			<div class="panel panel-info ">
+				<div class="panel-body">
+					<div class="panelContent">
+						<div class="paneltype">
+							<h3>流程输入参数</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype">
+							<h3>数据查询参数</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype">
+							<h3>外部请求参数</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+						<div class="paneltype">
+							<h3>其他参数</h3>
+							<div class="plugins">
+								<div class="singleplugin">
+									<a href="javcascript:(0)">{pluginname}</a>
+									<div class="pluginintro hide"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		
+		
+		<script src="js/jsplumb.min.js"></script>
+		<script src="js/demo.js"></script>
+	</body>
+
+</html>

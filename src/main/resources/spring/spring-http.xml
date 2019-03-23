@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="httpServer" class="com.lin.nettyserver.http.server.NettyHttpServer"
+		init-method="start" lazy-init="false">
+		<constructor-arg index="0">
+			<bean class="java.net.InetSocketAddress">
+				<constructor-arg index="0" value="${http.server.listener}" />
+				<constructor-arg index="1" value="${http.server.port}" />
+			</bean>
+		</constructor-arg>
+		<constructor-arg index="1" ref="socketOptions" />
+		<constructor-arg index="2" ref="httpHandler" />
+
+		<property name="maxChunkSize" value="${http.maxChunkSize}" />
+		<property name="maxHeaderSize" value="${http.maxHeaderSize}" />
+		<property name="maxInitialLineLength" value="${http.maxInitialLineLength}" />
+	</bean>
+
+	<bean id="httpHandler" class="com.lin.nettyserver.http.server.HttpChannelHandler">
+		<constructor-arg index="0" ref="ioMapperConfig" />
+		<constructor-arg index="1" ref="urlMapperConfig" />
+		<constructor-arg index="2" ref="executorService" />
+		
+	</bean>
+
+	<bean id="socketOptions" class="com.lin.nettyserver.tcp.config.ServerSocketOptions">
+		<property name="backlog" value="${http.server.backlog}" />
+		<property name="tcpNoDelay" value="${http.server.tcpNoDelay}" />
+		<property name="keepAlive" value="${http.server.keepAlive}" />
+		<property name="linger" value="${http.server.linger}" />
+		<property name="reuseAddr" value="${http.server.reuseAddr}" />
+		<property name="rcvbuf" value="${http.server.rcvbuf}" />
+		<property name="sndbuf" value="${http.server.sndbuf}" />
+		<property name="timeout" value="${http.server.timeout}" />
+	</bean>
+
+	<bean id="urlMapperConfig" class="com.lin.nettyserver.http.config.UrlMapperConfig" />
+	<bean id="ioMapperConfig" class="com.lin.nettyserver.http.config.IoMapperConfig" />
+
+	<bean id="kvDecodec" class="com.lin.nettyserver.http.codec.kv.KvDecodec" />
+	<bean id="jsonDecodec" class="com.lin.nettyserver.http.codec.json.JsonDecodec" />
+	<bean id="blockJsonDecodec" class="com.lin.nettyserver.http.codec.json.JsonDecodec" />
+	<bean id="blockKvDecodec" class="com.lin.nettyserver.http.codec.kv.KvDecodec" />
+	<bean id="blockUnspecficDecodec" class="com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec" />
+	<bean id="blockXmlDecodec" class="com.lin.nettyserver.http.codec.xml.XmlDecodec" />
+
+	<bean class="com.lin.nettyserver.http.statistic.HttpStatistcs" />
+</beans>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dataTableDao">
+	<resultMap id="dataTable" type="com.lin.entity.DataTableEntity">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+	</resultMap>
+
+	<resultMap id="dataColumn" type="com.lin.entity.DataColumnEntity">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.DataTableEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into dataTable (id,name)
+		values(#{id},#{name})
+	</insert>
+
+	<insert id="addTableData" parameterType="map">
+		insert into ${tableName}
+
+		<foreach collection="properties" index="key" item="value"
+			open="(" separator="," close=")">
+			${key}
+		</foreach>
+		values
+		<foreach collection="properties" index="key" item="value"
+			open="(" separator="," close=")">
+			#{value}
+		</foreach>
+	</insert>
+	
+	<update id="updateTableData" parameterType="map">
+		update ${tableName} set
+		<foreach collection="properties" index="key" item="value"
+			open="" separator="," close="">
+			 ${key}=#{value}
+		</foreach>
+		where id=#{properties.id}
+	</update>
+	
+	<delete id="deleteTableData">
+		delete from ${tableName} 
+		where id=#{properties.id}
+	</delete>
+	
+
+	<select id="findById" resultMap="dataTable" parameterType="int">
+		select *
+		from dataTable where id= #{id}
+	</select>
+
+	<select id="findAll" resultMap="dataTable">
+		select * from
+		dataTable
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.DataTableEntity">
+		update dataTable set
+		name=#{name} where
+		id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from dataTable where id= #{id}
+	</delete>
+
+	<select id="findColumns" parameterType="map" resultType="map">
+		desc ${name}
+	</select>
+
+	<insert id="addNewTable" parameterType="map">
+		create table ${tableName} (
+		id INTEGER NOT NULL AUTO_INCREMENT,
+		<foreach collection="columns" index="index" item="name" open=""
+			separator="," close=",">
+			${name} VARCHAR(100)
+		</foreach>
+		PRIMARY KEY(id)
+		)
+	</insert>
+
+	<select id="findData" parameterType="map" resultType="map">
+		select * from ${tableName}
+		<where>
+			<foreach collection="query" index="key" item="value" open=""
+				separator=" and " close="">
+				<foreach collection="value" index="name" item="parm" open=""
+					separator=" and " close="">
+					#{key} = #{parm}
+				</foreach>
+			</foreach>
+		</where>
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+	<insert id="addNewColumns" parameterType="map">
+		ALTER TABLE `${tableName}` 
+		
+		<foreach collection="columns" index="index" item="name" open=""
+			separator="," close="">
+			ADD COLUMN `${name}` VARCHAR(200) NULL 
+		</foreach>
+		
+	</insert>
+	
+	
+
+</mapper>

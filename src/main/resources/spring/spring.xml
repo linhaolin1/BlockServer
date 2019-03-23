@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>http.properties</value>
+				<value>database.properties</value>
+			</list>
+		</property>
+		<property name="fileEncoding" value="utf-8" />
+	</bean>
+
+
+
+	<!-- <bean id="baseDataSource" class="org.sqlite.SQLiteDataSource"> <property 
+		name="url" value="${database.url}" /> </bean> -->
+	<context:component-scan base-package="com.lin" />
+
+
+	<bean class="com.lin.nettyserver.http.context.UrlMapperListener" />
+
+	<bean class="com.lin.nettyserver.spring.context.EventBusPostProcessor" />
+
+	<bean id="eventBus" class="com.google.common.eventbus.AsyncEventBus">
+		<constructor-arg index="0" value="eventBus" />
+		<constructor-arg index="1" ref="executorService" />
+	</bean>
+
+	<bean id="executorService" class="java.util.concurrent.Executors"
+		factory-method="newFixedThreadPool">
+		<constructor-arg value="${eventbus.thread}" />
+		<constructor-arg>
+			<bean class="com.lin.nettyserver.tcp.config.NamedDaemonThreadFactory">
+				<constructor-arg value="eventbus" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="fileManager" class="com.lin.util.FileManager">
+		<constructor-arg index="0" value="${fdfs.conf}" />
+	</bean>
+
+	<bean id="redisManager" class="com.lin.util.RedisManager">
+		<constructor-arg index="0" value="${redis.host}" />
+		<constructor-arg index="1" value="${redis.port}" />
+		<constructor-arg index="2" value="${redis.pass}" />
+	</bean>
+	<import resource="spring-http.xml" />
+	<import resource="spring-database.xml" />
+</beans>

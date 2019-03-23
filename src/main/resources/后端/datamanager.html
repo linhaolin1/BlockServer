@@ -1,0 +1,227 @@
+﻿<html>
+<head>
+	<link rel="stylesheet" href="css/bootstrap.min.css" >
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="css/demo.css">
+	<!-- Latest compiled and minified JavaScript -->
+	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/xss.js"></script>
+	<script src="js/datamanager.js" ></script>
+
+</head>
+
+<body>
+
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">积木系统</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="list.html">流程管理</a></li>
+            <li><a href="datalist.html">数据管理</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+	<div class="content container-fluid maincontent">
+		<div class="leftbody">
+			<nav role="navigation">
+				<ul class="summary">
+					<li class="chapter active" data-level="1.1" data-path="./"> 
+							<a href="./">    
+								Introduction
+							</a>
+					</li>
+					<li class="chapter " data-level="1.2" data-path="preface/">
+							<a href="preface/">       
+								1 入门
+							</a>
+						<ul class="articles">
+							<li class="chapter " data-level="1.2.1" data-path="preface/background.html">
+									<a href="preface/background.html"> 
+										1.1 背景
+									</a>   
+							</li>
+							<li class="chapter " data-level="1.2.2" data-path="preface/requirements.html">
+									<a href="preface/requirements.html">              
+										1.2 需求
+									</a>
+							</li>
+							<li class="chapter " data-level="1.2.3" data-path="preface/architecture.html">
+									<a href="preface/architecture.html">             
+										1.3 架构
+									</a> 
+							</li>
+							<li class="chapter " data-level="1.2.4" data-path="preface/usage.html">
+									<a href="preface/usage.html">
+										1.4 用法
+									</a>
+							</li>
+						</ul>
+					</li>
+					<li class="chapter " data-level="1.3" data-path="quick-start.html">
+							<a href="quick-start.html">     
+								2 快速启动
+							</a>
+					</li>
+					<li class="divider"></li>
+
+					<li>
+						<a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+							Published with GitBook
+						</a>
+					</li>
+				</ul>
+            </nav>
+		</div>
+
+		<div class="rightbody">
+			<h2 id="tables-bordered"><a class="anchorjs-link " href="#tables-bordered" aria-label="Anchor link for: tables bordered" data-anchorjs-icon="" style="font-family: anchorjs-icons; font-style: normal; font-variant: normal; font-weight: normal; line-height: inherit; position: absolute; margin-left: -1em; padding-right: 0.5em;"></a>数据查询</h2>
+			<div class="queryDiv">
+				<textarea class="form-control" rows="5"></textarea>
+			</div>
+			<div class="dataDiv">
+				
+				<ul class="nav nav-tabs" role="tablist">
+					
+				</ul>
+
+				  <!-- Tab panes -->
+				<div class="tab-content">
+					
+				</div>
+				
+			</div>
+		</div>
+
+	</div>
+
+
+	<div class="footer">
+	</div>
+	
+	<div class="subpanel new-datatable closeable-panel">
+		
+		<div class="backshadow"></div>
+		<div class="panel panel-primary ">
+			<div class="panel-heading">增加新数据表
+				<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span></button>
+			</div>
+			<div class="panel-body">
+				<div class="input-group">
+					<span class="input-group-addon" id="basic-addon1">数据表名称</span>
+					<input type="text" class="form-control" aria-label="...">
+				</div>
+				<div class="added-column">
+					<div>
+						<button type="button" class="btn btn-default more-column">更多数据列</button>
+						<button type="button" class="btn btn-default import-excel">使用excel导入</button>
+					</div>
+					
+					<div class="more-column-div form-inline">
+						<div class="form-group">
+							<div class="input-group">
+							  <div class="input-group-addon">数据列名称</div>
+							  <input type="text" class="form-control column-name"  placeholder="名称">
+							</div>
+					  </div>
+					  <button type="button" class="btn btn-primary">确定</button>
+					  <button type="button" class="btn btn-warning">取消</button>
+					</div>
+					
+					<table class="table">
+						<thead>
+							<tr>
+							</tr>
+						</thead>
+					</table>
+					
+				</div>
+				<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+					<button type="button" class="btn btn-default submitsub">确定</button>
+					<button type="button" class="btn btn-default closesub">取消</button></div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="newtabpanel">
+		<div role="tabpanel" class="tab-pane" id="{name}">
+			<div class="datatablediv">
+				<table class="table table-hover table-bordered">
+				  <thead>
+					<tr>
+					</tr>
+				  </thead>
+				  <tbody>
+					
+				  </tbody>
+				</table>
+			</div>
+			<div class="pagehelper">
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default addrow">增加新数据</button>
+					<button type="button" class="btn btn-default exportModelExcel">数据填写模板</button>
+					<button type="button" class="btn btn-default exportExcel">导出到EXCEL</button>
+					<button type="button" class="btn btn-default importExcel">从EXCEL导入</button>
+				</div>
+				<div class="btn-group" role="group" aria-label="...">
+				  <button type="button" class="btn btn-default firstPage">首页</button>
+				  <button type="button" class="btn btn-default previousPage">上一页</button>
+				  <button type="button" class="btn btn-default nextPage">下一页</button>
+				  <button type="button" class="btn btn-default lastPage">尾页</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="importExcelPanel subpanel closeable-panel" >
+		<div class="backshadow"></div>
+		<div class="panel panel-primary ">
+			<div class="panel-heading">增加新参数
+				<button type="button" class="close closesub" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span></button>
+			</div>
+			<div class="panel-body">
+				<div class="input-group">
+					<div class="form-group">
+						<label for="exampleInputFile">数据上传</label>
+						<input type="file" id="exampleInputFile" name="file">
+						<p class="help-block">选择要上传的EXCEL数据文件.</p>
+					  </div>
+					  
+					 <button type="button" class="btn btn-primary uploadfile">开始上传</button>  
+					 <div class="upload-info" style="display:none;">
+						<p class="upload-info-records">新增记录.</p>
+						<p class="upload-info-columns">修改数据列</p>
+						<input type="hidden" class="upload-info-sequence">
+						<button type="button" class="btn btn-default submitsub">确定修改</button>
+					 </div>
+					 
+					<!-- /btn-group --></div>
+				<div class="btn-group pull-right submit-button" role="group" aria-label="group-btn">
+
+					<button type="button" class="btn btn-default closesub">取消</button></div>
+			</div>
+		</div>
+
+	</div>
+
+</body>
+
+
+</html>

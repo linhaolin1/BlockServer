@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dataSourceDao">
+	<resultMap id="dataSource" type="com.lin.entity.DataSourceEntity">
+		<id column="id" property="id" />
+		<result column="language" property="language" />
+		<result column="name" property="name" />
+		<result column="className" property="className" />
+		<result column="jdbcUrl" property="jdbcUrl" />
+		<result column="username" property="username" />
+		<result column="password" property="password" />
+
+
+	</resultMap>
+
+	<insert id="add" parameterType="com.lin.entity.DataSourceEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into dataSource
+		(language,name,className,jdbcUrl,username,password)
+		values(#{language},#{name},#{className},#{jdbcUrl},#{username},#{password}
+		)
+	</insert>
+
+	<select id="findByBlock" resultMap="dataSource" parameterType="int">
+		select * from dataSource where block= #{block}
+	</select>
+
+	<select id="findById" resultMap="dataSource" parameterType="int">
+		select *
+		from dataSource where id= #{id}
+	</select>
+
+	<update id="update" parameterType="com.lin.entity.DataSourceEntity">
+		update dataSource set
+		language=#{language},name=#{name},className=#{className},jdbcUrl=#{jdbcUrl},
+		username=#{username},password=#{password}
+		where
+		id=#{id}
+	</update>
+
+	<delete id="delete">
+		delete from dataSource where id= #{id}
+	</delete>
+
+</mapper>
