@@ -25,7 +25,7 @@ import com.lin.entity.AbstractEntity;
 import com.lin.nettyserver.http.util.string.StringConverter;
 import com.lin.nettyserver.http.util.string.StringConverters;
 
-public class DataLoader {
+public class JsDataLoader implements DataloaderInterface{
 	// public ConcurrentHashMap<String, Object> valueMap = new
 	// ConcurrentHashMap<String, Object>();
 
@@ -44,9 +44,9 @@ public class DataLoader {
 
 	public static Pattern countPattern = Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z_]\\)+"); // 位置匹配正则式
 
-	public DataLoader(String filePath) {
+	public JsDataLoader(String filePath) {
 		ScriptEngineManager sem = new ScriptEngineManager();
-		engine = sem.getEngineByName("JavaScript");
+		engine = sem.getEngineByName("jav8");
 		String jsFileName = filePath; // 读取js文件
 
 		System.out.println("jspath=" + jsFileName);
@@ -97,7 +97,7 @@ public class DataLoader {
 		//
 		// System.out.println(dl.parseValue(String.class, s));
 
-		DataLoader dl = new DataLoader("e:\\test.js");
+		JsDataLoader dl = new JsDataLoader("e:\\test.js");
 		System.out.println(dl.parseNormalValue("{notify_url}"));
 
 	}

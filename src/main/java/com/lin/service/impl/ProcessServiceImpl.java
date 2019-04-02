@@ -54,7 +54,8 @@ import com.lin.request.resp.UpdateProcessResp;
 import com.lin.service.ExecuteService;
 import com.lin.service.ProcessService;
 import com.lin.service.SequenceService;
-import com.lin.util.DataLoader;
+import com.lin.util.DataloaderInterface;
+import com.lin.util.JsDataLoader;
 import com.lin.util.ParamUtil;
 
 @Service
@@ -94,9 +95,7 @@ public class ProcessServiceImpl implements ProcessService {
 	@Autowired
 	SequenceService sequenceService;
 
-	public void executeProcess(ProcessEntity process, DataLoader loader) {
-
-		Long sequenceId = sequenceService.genpProcessSequence(process.getId());
+	public void executeProcess(ProcessEntity process, DataloaderInterface loader, Long sequenceId) {
 
 		BlockEntity block = blockDao.findFromTempById(process.getStartBlock());
 
@@ -110,14 +109,15 @@ public class ProcessServiceImpl implements ProcessService {
 	}
 
 	@Override
-	public void executeProcess(ProcessReq req, ProcessResp resp) {
+	public void executeProcess(ProcessReq req, ProcessResp resp, Long sequenceId) {
 		// TODO Auto-generated method stub
-		DataLoader loader = new DataLoader(jsPath);
+
+		// DataloaderInterface loader = new JsDataLoader(jsPath);
+		DataloaderInterface loader = new JsDataLoader(jsPath);
 		ProcessEntity process = processDao.findFromTempById(req.getProcessId());
 
 		loader.putAll(req.getObject());
-		executeProcess(process, loader);
-
+		executeProcess(process, loader, sequenceId);
 		HashMap map = new HashMap();
 
 		List<ProcessArgumentEntity> args = processArgumentDao.findFromTempByProcess(req.getProcessId());

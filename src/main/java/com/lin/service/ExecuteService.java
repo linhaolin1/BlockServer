@@ -11,7 +11,7 @@ import com.lin.request.resp.GetExecuteParamsResp;
 import com.lin.request.resp.GetExecuteVariableParamsResp;
 import com.lin.request.resp.SaveExecuteParamResp;
 import com.lin.request.resp.SaveExecuteResp;
-import com.lin.util.DataLoader;
+import com.lin.util.DataloaderInterface;
 
 public interface ExecuteService {
 
@@ -23,7 +23,7 @@ public interface ExecuteService {
 
 	public void getExecuteParams(GetExecuteParamsReq req, GetExecuteParamsResp resp);
 
-	public Integer executeBlock(BlockEntity block, DataLoader loader, Long sequenceId);
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId);
 
 	void deleteExecute(DelExecuteReq req, DelExecuteResp resp);
 

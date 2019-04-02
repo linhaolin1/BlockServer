@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.eventbus.Subscribe;
+import com.lin.constants.BlockConstant;
 import com.lin.constants.Result;
 import com.lin.nettyserver.http.annotation.HttpHandler;
 import com.lin.nettyserver.http.annotation.RequestMapper;
@@ -33,6 +34,7 @@ import com.lin.request.resp.SaveProcessArgsResp;
 import com.lin.request.resp.SaveProcessResp;
 import com.lin.request.resp.UpdateProcessResp;
 import com.lin.service.ProcessService;
+import com.lin.service.SequenceService;
 
 @HttpHandler
 @Component
@@ -43,57 +45,82 @@ public class ProcessAction {
 	@Autowired
 	ProcessService processService;
 
+	@Autowired
+	SequenceService sequenceService;
+
 	@Subscribe
 	@RequestMapper(url = "/block-server/kvRequest", codecName = "blockKvDecodec", clazz = ProcessReq.class)
 	public void kvRequest(ProcessReq req) {
 		logger.info("BlockReq:{}", req);
-		System.out.println(JSON.toJSONString(req));
-		
+		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
+		Long time = System.currentTimeMillis();
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
+				JSON.toJSONString(req.getObject()));
+
 		ProcessResp resp = new ProcessResp();
 		try {
-			processService.executeProcess(req, resp);
+			processService.executeProcess(req, resp, sequenceId);
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
+					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-		} finally {
-			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
+		ResponseUtil.response(req, JSON.toJSONString(resp));
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
+				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
 	@RequestMapper(url = "/block-server/jsonRequest", codecName = "blockJsonDecodec", clazz = ProcessReq.class)
 	public void jsonRequest(ProcessReq req) {
 		logger.info("BlockReq:{}", req);
-		
+		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
+		Long time = System.currentTimeMillis();
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
+				JSON.toJSONString(req.getObject()));
+
 		ProcessResp resp = new ProcessResp();
 		try {
-			processService.executeProcess(req, resp);
+			processService.executeProcess(req, resp, sequenceId);
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
+					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-		} finally {
-			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
+		ResponseUtil.response(req, JSON.toJSONString(resp));
+
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
+				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
-	
+
 	@Subscribe
 	public void dynamicRequest(UnspecifiedReq req) {
-		//寻找url匹配的process
-		ProcessReq process=new ProcessReq();
+		// 寻找url匹配的process
+		ProcessReq process = new ProcessReq();
 		process.setObject(req.getObject());
 		ProcessResp resp = new ProcessResp();
+		Long time = System.currentTimeMillis();
+		process.setProcessId(processService.getProcessByUrl(req.getUrl()));
+		Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
 		try {
-			process.setProcessId(processService.getProcessByUrl(req.getUrl()));
-			processService.executeProcess(process, resp);
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time,
+					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
+			processService.executeProcess(process, resp, sequenceId);
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
+					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-		} finally {
-			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
+		ResponseUtil.response(req, JSON.toJSONString(resp));
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
+				processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
@@ -122,7 +149,7 @@ public class ProcessAction {
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
-			
+
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		} finally {
 			ResponseUtil.response(req, JSON.toJSONString(resp));
@@ -144,7 +171,7 @@ public class ProcessAction {
 			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
 	}
-	
+
 	@Subscribe
 	@RequestMapper(url = "/block-server/saveProcessArgs", codecName = "blockJsonDecodec", clazz = SaveProcessArgsReq.class)
 	public void saveProcessArgs(SaveProcessArgsReq req) {
@@ -160,7 +187,7 @@ public class ProcessAction {
 			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
 	}
-	
+
 	@Subscribe
 	@RequestMapper(url = "/block-server/deleteProcessArgs", codecName = "blockJsonDecodec", clazz = DeleteProcessArgsReq.class)
 	public void deleteProcessArgs(DeleteProcessArgsReq req) {
@@ -180,19 +207,19 @@ public class ProcessAction {
 	@Subscribe
 	@RequestMapper(url = "/block-server/checkAllLineAvailable", codecName = "blockKvDecodec", clazz = CheckAllLineAvailableReq.class)
 	public void checkAllLineAvailable(CheckAllLineAvailableReq req) {
-//		logger.debug("CheckAllLineAvailableReq:{}", req);
-//		CheckAllLineAvailableResp resp = new CheckAllLineAvailableResp();
-//		try {
-//			processService.checkAllLineAvailable(req, resp);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			resp.setResult(Result.ERROR_SYSTEM);
-//			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-//		} finally {
-//			ResponseUtil.response(req, JSON.toJSONString(resp));
-//		}
+		// logger.debug("CheckAllLineAvailableReq:{}", req);
+		// CheckAllLineAvailableResp resp = new CheckAllLineAvailableResp();
+		// try {
+		// processService.checkAllLineAvailable(req, resp);
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// resp.setResult(Result.ERROR_SYSTEM);
+		// resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
+		// } finally {
+		// ResponseUtil.response(req, JSON.toJSONString(resp));
+		// }
 	}
-	
+
 	@Subscribe
 	@RequestMapper(url = "/block-server/getProcessList", codecName = "blockKvDecodec", clazz = GetProcessListReq.class)
 	public void getProcessList(GetProcessListReq req) {
@@ -212,33 +239,33 @@ public class ProcessAction {
 	@Subscribe
 	@RequestMapper(url = "/block-server/checkAllParamAvailable", codecName = "blockKvDecodec", clazz = CheckAllParamAvailableReq.class)
 	public void checkAllParamAvailable(CheckAllParamAvailableReq req) {
-//		logger.debug("CheckAllParamAvailableReq:{}", req);
-//		CheckAllParamAvailableResp resp = new CheckAllParamAvailableResp();
-//		try {
-//			processService.checkAllParamAvailable(req, resp);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			resp.setResult(Result.ERROR_SYSTEM);
-//			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-//		} finally {
-//			ResponseUtil.response(req, JSON.toJSONString(resp));
-//		}
+		// logger.debug("CheckAllParamAvailableReq:{}", req);
+		// CheckAllParamAvailableResp resp = new CheckAllParamAvailableResp();
+		// try {
+		// processService.checkAllParamAvailable(req, resp);
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// resp.setResult(Result.ERROR_SYSTEM);
+		// resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
+		// } finally {
+		// ResponseUtil.response(req, JSON.toJSONString(resp));
+		// }
 	}
 
 	@Subscribe
 	@RequestMapper(url = "/block-server/checkAllBlockAvailable", codecName = "blockKvDecodec", clazz = CheckAllBlockAvailableReq.class)
 	public void checkAllBlockAvailable(CheckAllBlockAvailableReq req) {
-//		logger.debug("CheckAllBlockAvailableReq:{}", req);
-//		CheckAllBlockAvailableResp resp = new CheckAllBlockAvailableResp();
-//		try {
-//			processService.checkAllBlockAvailable(req, resp);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			resp.setResult(Result.ERROR_SYSTEM);
-//			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
-//		} finally {
-//			ResponseUtil.response(req, JSON.toJSONString(resp));
-//		}
+		// logger.debug("CheckAllBlockAvailableReq:{}", req);
+		// CheckAllBlockAvailableResp resp = new CheckAllBlockAvailableResp();
+		// try {
+		// processService.checkAllBlockAvailable(req, resp);
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// resp.setResult(Result.ERROR_SYSTEM);
+		// resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
+		// } finally {
+		// ResponseUtil.response(req, JSON.toJSONString(resp));
+		// }
 	}
 
 }

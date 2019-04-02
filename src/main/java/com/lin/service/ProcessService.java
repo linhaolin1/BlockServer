@@ -26,7 +26,7 @@ import com.lin.request.resp.SaveProcessResp;
 import com.lin.request.resp.UpdateProcessResp;
 
 public interface ProcessService {
-	public void executeProcess(ProcessReq req, ProcessResp resp);
+	public void executeProcess(ProcessReq req, ProcessResp resp,Long sequenceId);
 
 	public void getProcess(GetProcessReq req, GetProcessResp resp);
 

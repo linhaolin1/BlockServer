@@ -153,7 +153,7 @@ public class ParamUtil {
 			return false;
 	}
 
-	public static boolean isOK(DataLoader loader, NextRequirementEntity requirement) {
+	public static boolean isOK(DataloaderInterface loader, NextRequirementEntity requirement) {
 		String parsedContent = (String) loader.parseValue(requirement.getParam1());
 		String parsedContent2 = (String) loader.parseValue(requirement.getParam2());
 		String method = requirement.getMethod();

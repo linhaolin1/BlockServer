@@ -23,7 +23,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,7 +81,7 @@ import com.lin.request.resp.SaveExecuteParamResp;
 import com.lin.request.resp.SaveExecuteResp;
 import com.lin.service.ExecuteService;
 import com.lin.service.SequenceService;
-import com.lin.util.DataLoader;
+import com.lin.util.DataloaderInterface;
 import com.lin.util.ParamUtil;
 
 @Service
@@ -251,14 +250,14 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	}
 
-	public Integer executeBlock(BlockEntity block, DataLoader loader, Long sequenceId) {
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId) {
 		System.out.println("blockID=" + block.getId());
 
 		execute(block, loader, sequenceId, block.getProcess());
 		return next(loader, block);
 	}
 
-	private void execute(BlockEntity block, DataLoader loader, Long sequenceId, int processId) {
+	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId) {
 		// TODO Auto-generated method stub
 		List<ExecuteEntity> executes = executeDao.findFromTempByBlock(block.getId());
 
@@ -275,7 +274,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 		}
 	}
 
-	private Integer next(DataLoader loader, BlockEntity block) {
+	private Integer next(DataloaderInterface loader, BlockEntity block) {
 		List<NextEntity> nexts = nextDao.findFromTempByBlock(block.getId());
 		for (NextEntity n : nexts) {
 			if (isOk(loader, n)) {
@@ -285,7 +284,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 		return -1;
 	}
 
-	private boolean isOk(DataLoader loader, NextEntity next) {
+	private boolean isOk(DataloaderInterface loader, NextEntity next) {
 		List<NextRequirementEntity> requirements = nextRequirementDao.findFromTempByNext(next.getId());
 
 		for (NextRequirementEntity r : requirements) {
@@ -480,7 +479,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 		}
 
-		public void execute(DataLoader loader) {
+		public void execute(DataloaderInterface loader) {
 			// TODO Auto-generated method stub
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_STARTCALL, sequenceId, time, processId, blockId,
 					execute.getId(), remark);
@@ -492,7 +491,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 			}
 		}
 
-		private void innerCall(DataLoader loader) {
+		private void innerCall(DataloaderInterface loader) {
 			try {
 				// Class clz = Class.forName(plugin.className);
 
@@ -628,6 +627,9 @@ public class ExecuteServiceImpl implements ExecuteService {
 					}
 				}
 
+				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_OUTPUTDATA, sequenceId,
+						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
+
 			} catch (SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
 				// TODO Auto-generated catch block
@@ -643,7 +645,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 			return;
 		}
 
-		private void outerCall(DataLoader loader) {
+		private void outerCall(DataloaderInterface loader) {
 			BufferedReader br = null;
 			StringBuilder sb = new StringBuilder();
 			try {

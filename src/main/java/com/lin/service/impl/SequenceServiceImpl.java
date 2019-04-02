@@ -41,9 +41,12 @@ public class SequenceServiceImpl implements SequenceService {
 	}
 
 	@Override
-	public void save(final String string, final Long sequenceId, final Long time, final int processId,
-			final int blockId, final Integer executeId, final String remark) {
+	public void save(final String string, final Long sequenceId, final Long time, final Integer processId,
+			final Integer blockId, final Integer executeId, final String remark) {
 		// TODO Auto-generated method stub
+		if (sequenceId == null)
+			return;
+
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {

@@ -36,7 +36,7 @@ public class ProcessPlugin extends AbstractVariableParamPlugin {
 		executeReq.setProcessId(Integer.parseInt(req.getProcessId()));
 		executeReq.setObject(req.getMap());
 		ProcessResp executeResp = new ProcessResp();
-		processService.executeProcess(executeReq, executeResp);
+		processService.executeProcess(executeReq, executeResp, null);
 		HashMap map = new HashMap();
 		if (executeResp.getResponse() != null)
 			map.putAll(executeResp.getResponse());

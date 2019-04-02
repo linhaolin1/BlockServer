@@ -74,6 +74,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 		}
+		
 		if ((msg instanceof HttpContent)) {
 
 			HttpContent httpContent = (HttpContent) msg;
@@ -94,6 +95,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 				HttpDecodec decodec = this.config.getHttpDecodec(url);
 				Class clazz = this.config.getClass(url);
 				Object requestEvent = null;
+				
 				if (decodec instanceof KvDecodec) {
 					requestEvent = postKvDecode(decodec, queryStringDecoder, clazz);
 				} else if (decodec instanceof JsonDecodec) {
@@ -140,6 +142,8 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 					}
 
 				}
+
+				
 				if (null != requestEvent) {
 					if ((requestEvent instanceof Propertyable)) {
 						Propertyable propertyable = (Propertyable) requestEvent;

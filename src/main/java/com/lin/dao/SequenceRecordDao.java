@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class SequenceRecordDao extends BaseDao {
-	public void addNewRecord(final String string, final Long sequenceNumm, final Long time, final int processId,
-			final int blockId, final Integer executeId, String remark) {
+	public void addNewRecord(final String string, final Long sequenceNumm, final Long time, final Integer processId,
+			final Integer blockId, final Integer executeId, String remark) {
 		HashMap map = new HashMap();
 		map.put("name", string);
 		map.put("sequenceNumm", sequenceNumm);
