@@ -102,7 +102,6 @@ public class ParamUtil {
 
 	public static boolean compare(String param1, String method, String param2) {
 
-		System.out.println("param1=(" + param1 + ") method=" + method + " param2=(" + param2 + ")");
 
 		if (StringUtils.isBlank(param1) && StringUtils.isBlank(param2) && method.equals("=")) {
 			return true;

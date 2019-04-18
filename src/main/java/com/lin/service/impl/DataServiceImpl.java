@@ -352,8 +352,6 @@ public class DataServiceImpl implements DataService {
 			Map<String, List<PictureData>> picDatas = getSheetPictrues(workbook.getSheetAt(i), workbook);
 			LoadData data = loadDataFromSingleSheet(workbook.getSheetAt(i), picDatas);
 			loadDatas.add(data);
-			System.out.println("======================================");
-			System.out.println(JSON.toJSONString(data));
 
 		}
 		LoadData total = new LoadData();
@@ -489,9 +487,6 @@ public class DataServiceImpl implements DataService {
 			return data;
 		}
 
-		System.out.println("newDataSheet=" + newDataSheet);
-		System.out.println("idPosition=" + idPosition);
-		System.out.println("verifyPosition=" + verifyPosition);
 
 		for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
 			Row row = sheet.getRow(i);
@@ -502,10 +497,8 @@ public class DataServiceImpl implements DataService {
 					if (j == idPosition)
 						continue;
 
-					System.out.println("index=" + (i + "_" + j) + " " + (picData.get(i + "_" + j) == null));
 					single.put(heads.get(j), getCellValue(row.getCell(j), picData.get(i + "_" + j)));
 				}
-				System.out.println(JSON.toJSONString(single));
 
 				data.addData.add(single);
 			} else {
@@ -659,10 +652,8 @@ public class DataServiceImpl implements DataService {
 			return new ExcelDataValue("");
 
 		if (cell instanceof XSSFCell) {
-			System.out.println("2007 xls");
 			return getCellValue07((XSSFCell) cell, list);
 		} else if (cell instanceof HSSFCell) {
-			System.out.println("2003 xls");
 			return getCellValue03((HSSFCell) cell, list);
 		}
 		return new ExcelDataValue("");

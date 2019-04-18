@@ -1,5 +1,6 @@
 package com.lin.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import com.lin.request.req.CheckAllBlockAvailableReq;
@@ -26,7 +27,7 @@ import com.lin.request.resp.SaveProcessResp;
 import com.lin.request.resp.UpdateProcessResp;
 
 public interface ProcessService {
-	public void executeProcess(ProcessReq req, ProcessResp resp,Long sequenceId);
+	public void executeProcess(ProcessReq req, ProcessResp resp,Long sequenceId) throws InvocationTargetException;
 
 	public void getProcess(GetProcessReq req, GetProcessResp resp);
 

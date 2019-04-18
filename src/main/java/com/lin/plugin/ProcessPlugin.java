@@ -1,5 +1,6 @@
 package com.lin.plugin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class ProcessPlugin extends AbstractVariableParamPlugin {
 	ProcessService processService;
 
 	@PluginMethodAnnotation(name = "调用流程")
-	public void executeProcess(ExecureProcessReq req, ExecuteProcessResp resp) {
+	public void executeProcess(ExecureProcessReq req, ExecuteProcessResp resp) throws InvocationTargetException {
 		ProcessReq executeReq = new ProcessReq();
 		executeReq.setProcessId(Integer.parseInt(req.getProcessId()));
 		executeReq.setObject(req.getMap());

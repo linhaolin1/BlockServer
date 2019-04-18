@@ -413,22 +413,6 @@ public class PluginServiceImpl implements PluginService {
 		return myClassName;
 	}
 
-	public static void main(String[] args) {
-		try {
-			List<String> list = getClassNameByJar(
-					"D:\\Users\\lion\\workspace\\exampleProcessResult\\target\\exampleProcessResult-1.0.jar");
-			for (String s : list) {
-				if (s.indexOf("/") != -1 || s.indexOf("\\") != -1) {
-					System.out.println(s);
-				}
-
-			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	private class TestValue {
 		PluginMethodParamAnnotation anno;

@@ -23,9 +23,6 @@ import com.lin.request.req.ProcessReq;
 import com.lin.request.req.SaveProcessArgsReq;
 import com.lin.request.req.SaveProcessReq;
 import com.lin.request.req.UpdateProcessReq;
-import com.lin.request.resp.CheckAllBlockAvailableResp;
-import com.lin.request.resp.CheckAllLineAvailableResp;
-import com.lin.request.resp.CheckAllParamAvailableResp;
 import com.lin.request.resp.DeleteProcessArgsResp;
 import com.lin.request.resp.GetProcessListResp;
 import com.lin.request.resp.GetProcessResp;
@@ -54,23 +51,21 @@ public class ProcessAction {
 		logger.info("BlockReq:{}", req);
 		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
 		Long time = System.currentTimeMillis();
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
-				JSON.toJSONString(req.getObject()));
-
 		ProcessResp resp = new ProcessResp();
 		try {
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
+					JSON.toJSONString(req.getObject()));
+			time=System.currentTimeMillis();
+			
 			processService.executeProcess(req, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
 					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-
+			time=System.currentTimeMillis();
 		} catch (Exception e) {
-			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
 		ResponseUtil.response(req, JSON.toJSONString(resp));
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
-				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
@@ -79,23 +74,20 @@ public class ProcessAction {
 		logger.info("BlockReq:{}", req);
 		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
 		Long time = System.currentTimeMillis();
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
-				JSON.toJSONString(req.getObject()));
-
 		ProcessResp resp = new ProcessResp();
 		try {
+			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
+					JSON.toJSONString(req.getObject()));
+			time=System.currentTimeMillis();
 			processService.executeProcess(req, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
 					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+			time=System.currentTimeMillis();
 		} catch (Exception e) {
-			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
 		ResponseUtil.response(req, JSON.toJSONString(resp));
-
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
-				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
@@ -105,22 +97,22 @@ public class ProcessAction {
 		process.setObject(req.getObject());
 		ProcessResp resp = new ProcessResp();
 		Long time = System.currentTimeMillis();
-		process.setProcessId(processService.getProcessByUrl(req.getUrl()));
-		Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
+		
 		try {
+			process.setProcessId(processService.getProcessByUrl(req.getUrl()));
+			Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time,
 					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
+			time=System.currentTimeMillis();
 			processService.executeProcess(process, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
 					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
+			time=System.currentTimeMillis();
 		} catch (Exception e) {
-			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
 		ResponseUtil.response(req, JSON.toJSONString(resp));
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_RESPONSE, sequenceId, System.currentTimeMillis() - time,
-				processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe

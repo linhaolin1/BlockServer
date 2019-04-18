@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,11 +26,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSONObject;
-import com.jolbox.bonecp.BoneCPDataSource;
 import com.lin.NettyServer;
 import com.lin.block.ProcessArgument;
 import com.lin.block.ProcessArgumentComplex;
@@ -49,7 +50,6 @@ import com.lin.dao.ProcessArgumentComplexDao;
 import com.lin.dao.ProcessArgumentDao;
 import com.lin.dao.ProcessDao;
 import com.lin.entity.BlockEntity;
-import com.lin.entity.DataSourceEntity;
 import com.lin.entity.ExecuteEntity;
 import com.lin.entity.ExecuteParamEntity;
 import com.lin.entity.NextEntity;
@@ -85,7 +85,7 @@ import com.lin.util.DataloaderInterface;
 import com.lin.util.ParamUtil;
 
 @Service
-@Transactional
+@Transactional(rollbackFor=Exception.class)
 public class ExecuteServiceImpl implements ExecuteService {
 
 	@Autowired
@@ -250,31 +250,36 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	}
 
-	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId) {
-		System.out.println("blockID=" + block.getId());
-
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId)
+			throws InvocationTargetException {
 		execute(block, loader, sequenceId, block.getProcess());
-		return next(loader, block);
+		Long time = System.currentTimeMillis();
+		Integer i = next(loader, block);
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_PROCESS_NEXT, sequenceId, System.currentTimeMillis() - time,
+				block.getProcess(), null, null, null);
+
+		return i;
 	}
 
-	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId) {
+	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId)
+			throws InvocationTargetException {
 		// TODO Auto-generated method stub
 		List<ExecuteEntity> executes = executeDao.findFromTempByBlock(block.getId());
 
 		for (ExecuteEntity e : executes) {
-
 			PluginMethodEntity method = pluginMethodDao.findById(e.getMethod());
 			PluginEntity plugin = pluginDao.findById(method.getPlugin());
 			List<ExecuteParamEntity> exeParams = executeParamDao.findMethodParamFromTempByExecute(e.getId());
 			ExecuteParamEntity returnParam = executeParamDao.findMethodReturnParamFromTempByExecute(e.getId());
 
-			Execute ee = new Execute(plugin, method, exeParams, returnParam, e, sequenceId, block.getId(), processId);
-
+			Execute ee = new Execute(plugin, method, exeParams, returnParam, e, sequenceId, block.getId(), processId,
+					getClassInstance(e, plugin));
 			ee.execute(loader);
 		}
 	}
 
 	private Integer next(DataloaderInterface loader, BlockEntity block) {
+
 		List<NextEntity> nexts = nextDao.findFromTempByBlock(block.getId());
 		for (NextEntity n : nexts) {
 			if (isOk(loader, n)) {
@@ -374,26 +379,32 @@ public class ExecuteServiceImpl implements ExecuteService {
 			blockResourceList.put(block.getId(), array);
 		}
 
-		for (Object ob : blockResourceList.get(block.getId())) {
-			if (clz.isAssignableFrom(ob.getClass())) {
-				return ob;
-			}
-		}
+		// for (Object ob : blockResourceList.get(block.getId())) {
+		// if (clz.isAssignableFrom(ob.getClass())) {
+		// return ob;
+		// }
+		// }
 
-		if (clz.equals(DataSource.class)) {
-			if (pe.getDataSource() == null) {
-				return dataSource;
-			}
-			DataSourceEntity dataSource = dataSourceDao.findById(pe.getDataSource());
+		System.out.println("thread name=" + Thread.currentThread().getName());
 
-			// TODO Auto-generated method stub
-			BoneCPDataSource cpSource = new BoneCPDataSource();
-			cpSource.setJdbcUrl(dataSource.getJdbcUrl());
-			cpSource.setDriverClass(dataSource.getClassName());
-			cpSource.setUsername(dataSource.getUsername());
-			cpSource.setPassword(dataSource.getPassword());
-			blockResourceList.get(block.getId()).add(cpSource);
-			return cpSource;
+		if (clz.equals(Connection.class)) {
+			return DataSourceUtils.getConnection(dataSource);
+
+			// if (pe.getDataSource() == null) {
+			// return dataSource;
+			// }
+
+			// DataSourceEntity dataSource =
+			// dataSourceDao.findById(pe.getDataSource());
+			//
+			// // TODO Auto-generated method stub
+			// BoneCPDataSource cpSource = new BoneCPDataSource();
+			// cpSource.setJdbcUrl(dataSource.getJdbcUrl());
+			// cpSource.setDriverClass(dataSource.getClassName());
+			// cpSource.setUsername(dataSource.getUsername());
+			// cpSource.setPassword(dataSource.getPassword());
+			// blockResourceList.get(block.getId()).add(cpSource);
+			// return cpSource;
 		}
 
 		if (clz.equals(HttpClient.class)) {
@@ -458,9 +469,11 @@ public class ExecuteServiceImpl implements ExecuteService {
 		private int processId;
 		private Long time;
 		private String remark;
+		AbstractPlugin exe;
 
 		public Execute(PluginEntity plugin, PluginMethodEntity method, List<ExecuteParamEntity> exeParams,
-				ExecuteParamEntity returnParam, ExecuteEntity execute, Long sequenceId, int blockId, int processId) { // 从数据库读取
+				ExecuteParamEntity returnParam, ExecuteEntity execute, Long sequenceId, int blockId, int processId,
+				AbstractPlugin exe) { // 从数据库读取
 			this.plugin = plugin;
 			this.method = method;
 			this.exeParams = exeParams;
@@ -470,7 +483,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 			this.blockId = blockId;
 			this.processId = processId;
 			time = System.currentTimeMillis();
-
+			this.exe = exe;
 			JSONObject ob = new JSONObject();
 			ob.put("pluginId", plugin.getId());
 			ob.put("pluginName", plugin.getName());
@@ -479,7 +492,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 		}
 
-		public void execute(DataloaderInterface loader) {
+		public void execute(DataloaderInterface loader) throws InvocationTargetException {
 			// TODO Auto-generated method stub
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_STARTCALL, sequenceId, time, processId, blockId,
 					execute.getId(), remark);
@@ -491,14 +504,13 @@ public class ExecuteServiceImpl implements ExecuteService {
 			}
 		}
 
-		private void innerCall(DataloaderInterface loader) {
+		private void innerCall(DataloaderInterface loader) throws InvocationTargetException {
 			try {
 				// Class clz = Class.forName(plugin.className);
 
-				AbstractPlugin exe = getClassInstance(execute, plugin);
-
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_LOADCLASS, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
+				time = System.currentTimeMillis();
 				Method m = null;
 				Method[] methods = exe.getClass().getDeclaredMethods();
 				for (Method me : methods) {
@@ -586,9 +598,11 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_LOADDATA, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
+				time = System.currentTimeMillis();
 				m.invoke(exe, params);
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_INVOKE, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
+				time = System.currentTimeMillis();
 				Field[] fields2 = parameters[1].getType().getDeclaredFields();
 
 				for (ExecuteParamEntity ep : exeParams) {
@@ -630,14 +644,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_OUTPUTDATA, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
 
-			} catch (SecurityException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
+			} catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

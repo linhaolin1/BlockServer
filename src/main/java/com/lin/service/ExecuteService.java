@@ -1,5 +1,7 @@
 package com.lin.service;
 
+import java.lang.reflect.InvocationTargetException;
+
 import com.lin.entity.BlockEntity;
 import com.lin.request.req.DelExecuteReq;
 import com.lin.request.req.GetExecuteParamsReq;
@@ -23,7 +25,7 @@ public interface ExecuteService {
 
 	public void getExecuteParams(GetExecuteParamsReq req, GetExecuteParamsResp resp);
 
-	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId);
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId) throws InvocationTargetException;
 
 	void deleteExecute(DelExecuteReq req, DelExecuteResp resp);
 

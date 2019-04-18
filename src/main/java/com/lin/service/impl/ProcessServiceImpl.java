@@ -1,5 +1,6 @@
 package com.lin.service.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,7 +60,7 @@ import com.lin.util.JsDataLoader;
 import com.lin.util.ParamUtil;
 
 @Service
-@Transactional
+@Transactional(rollbackFor=Exception.class)
 public class ProcessServiceImpl implements ProcessService {
 
 	@Value("${jsPath}")
@@ -95,7 +96,7 @@ public class ProcessServiceImpl implements ProcessService {
 	@Autowired
 	SequenceService sequenceService;
 
-	public void executeProcess(ProcessEntity process, DataloaderInterface loader, Long sequenceId) {
+	public void executeProcess(ProcessEntity process, DataloaderInterface loader, Long sequenceId) throws InvocationTargetException {
 
 		BlockEntity block = blockDao.findFromTempById(process.getStartBlock());
 
@@ -109,7 +110,8 @@ public class ProcessServiceImpl implements ProcessService {
 	}
 
 	@Override
-	public void executeProcess(ProcessReq req, ProcessResp resp, Long sequenceId) {
+	
+	public void executeProcess(ProcessReq req, ProcessResp resp, Long sequenceId) throws InvocationTargetException {
 		// TODO Auto-generated method stub
 
 		// DataloaderInterface loader = new JsDataLoader(jsPath);
@@ -122,10 +124,9 @@ public class ProcessServiceImpl implements ProcessService {
 
 		List<ProcessArgumentEntity> args = processArgumentDao.findFromTempByProcess(req.getProcessId());
 
+		Long time = System.currentTimeMillis();
 		for (ProcessArgumentEntity arg : args) {
 			if (arg.getType() == BlockConstant.args_type_output) {
-				System.out.println(loader.get(arg.getName()));
-
 				try {
 					map.put(arg.getName(), JSON.parse(String.valueOf(loader.parseValue("{" + arg.getName() + "}"))));
 				} catch (Exception e) {
@@ -133,6 +134,8 @@ public class ProcessServiceImpl implements ProcessService {
 				}
 			}
 		}
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
+				JSON.toJSONString(req.getObject()));
 		resp.setResponse(map);
 	}
 
