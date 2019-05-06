@@ -18,7 +18,7 @@ public class DataTableDao extends BaseDao {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("tableName", name);
 			map.put("columns", list);
-			template.insert("dataTableDao.addNewTable", map);
+			businessTemplate.insert("dataTableDao.addNewTable", map);
 
 			DataTableEntity dt = new DataTableEntity();
 			dt.setName(name);
@@ -32,7 +32,7 @@ public class DataTableDao extends BaseDao {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("tableName", name);
 			map.put("columns", list);
-			template.insert("dataTableDao.addNewColumns", map);
+			businessTemplate.insert("dataTableDao.addNewColumns", map);
 
 		}
 	}
@@ -49,7 +49,7 @@ public class DataTableDao extends BaseDao {
 		// TODO Auto-generated method stub
 		Map<String, String> queryMap = new HashMap();
 		queryMap.put("name", name);
-		List<Map<String, Object>> map = template.selectList("dataTableDao.findColumns", queryMap);
+		List<Map<String, Object>> map = businessTemplate.selectList("dataTableDao.findColumns", queryMap);
 		List<String> list = new ArrayList<String>();
 		for (Map<String, Object> m : map) {
 			list.add((String) m.get("Field"));
@@ -66,7 +66,7 @@ public class DataTableDao extends BaseDao {
 		queryMap.put("pageSize", pageSize);
 		queryMap.put("query", query);
 
-		return template.selectList("dataTableDao.findData", queryMap);
+		return businessTemplate.selectList("dataTableDao.findData", queryMap);
 	}
 
 	public Integer addTableData(String tableName, Map<String, String> properties) {
@@ -74,7 +74,7 @@ public class DataTableDao extends BaseDao {
 		Map<String, Object> queryMap = new HashMap();
 		queryMap.put("properties", properties);
 		queryMap.put("tableName", tableName);
-		template.insert("dataTableDao.addTableData", queryMap);
+		businessTemplate.insert("dataTableDao.addTableData", queryMap);
 		return (Integer) queryMap.get("id");
 	}
 
@@ -83,7 +83,7 @@ public class DataTableDao extends BaseDao {
 		Map<String, Object> queryMap = new HashMap();
 		queryMap.put("properties", transferMap);
 		queryMap.put("tableName", tableName);
-		template.insert("dataTableDao.updateTableData", queryMap);
+		businessTemplate.insert("dataTableDao.updateTableData", queryMap);
 	}
 
 	public void deleteTableData(String tableName, Map<String, String> transferMap) {
@@ -91,6 +91,6 @@ public class DataTableDao extends BaseDao {
 		Map<String, Object> queryMap = new HashMap();
 		queryMap.put("properties", transferMap);
 		queryMap.put("tableName", tableName);
-		template.insert("dataTableDao.deleteTableData", queryMap);
+		businessTemplate.insert("dataTableDao.deleteTableData", queryMap);
 	}
 }

@@ -376,6 +376,7 @@ jsPlumb.ready(function () {
 		$.ajax({
 			url:"/block-server/saveExecuteParam",
 			type:"post",
+			contentType:"application/json",
 			beforeSend:function(){
 				 showProgress();	
 			},

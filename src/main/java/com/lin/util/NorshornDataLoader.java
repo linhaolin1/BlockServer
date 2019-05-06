@@ -15,22 +15,21 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import com.alibaba.fastjson.JSON;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8ResultUndefined;
-import com.eclipsesource.v8.V8Value;
 import com.lin.constants.BlockConstant;
 import com.lin.entity.AbstractEntity;
 import com.lin.nettyserver.http.util.string.StringConverter;
 import com.lin.nettyserver.http.util.string.StringConverters;
 
-public class JsDataLoader implements DataloaderInterface {
+public class NorshornDataLoader implements DataloaderInterface{
 	// public ConcurrentHashMap<String, Object> valueMap = new
 	// ConcurrentHashMap<String, Object>();
 
-	V8 engine;
+	static ScriptEngine engine;
 
 	private List<String> keys = new ArrayList<String>();
 
@@ -45,24 +44,28 @@ public class JsDataLoader implements DataloaderInterface {
 
 	public static Pattern countPattern = Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z_]\\)+"); // 位置匹配正则式
 
-	public JsDataLoader(String filePath) {
-		if (engine != null)
+	public NorshornDataLoader(String filePath) {
+		if(engine!=null)
 			return;
-
-		engine = V8.createV8Runtime();
-
+		
+		ScriptEngineManager sem = new ScriptEngineManager();
+		engine = sem.getEngineByName("nashorn");
 		String jsFileName = filePath; // 读取js文件
 
+		System.out.println("jspath=" + jsFileName);
+
 		try {
-			List<String> array = Files.readAllLines(Paths.get(jsFileName));
-			StringBuilder sb = new StringBuilder();
-			for (String s : array) {
-				sb.append(s + "\n");
+			List<String> array=Files.readAllLines(Paths.get(jsFileName));
+			StringBuilder sb=new StringBuilder();
+			for(String s:array){
+				sb.append(s+"\n");
 			}
-			engine.executeScript(sb.toString());
-			engine.executeScript("a=1");
+			engine.eval(sb.toString());
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ScriptException e) {
+			// TODO Auto-generated catch block0
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -85,71 +88,77 @@ public class JsDataLoader implements DataloaderInterface {
 		// System.out.println(bl.parseText(pp));
 		// Pattern countPattern2 =
 		// Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z.]+\\)");
-		List ar = new ArrayList();
-		ar.add("1");
-		ar.add("2");
-		JsDataLoader dl = new JsDataLoader("e:\\test.js");
-		dl.put("账号", "123");
-		dl.put("时间", new Date().toString());
-		dl.put("array", ar);
-		String s = "{账号}{时间}";
-
-		System.out.println(dl.engine.get("账号"));
-		System.out.println(dl.get("账号"));
-		System.out.println(dl.get("账号"));
-
-		System.out.println(dl.parseValue(s));
+		// List ar = new ArrayList();
+		// ar.add("1");
+		// ar.add("2");
 		//
-		// System.out.println(dl.parseNormalValue("{notify_url}"));
+		// DataLoader dl = new DataLoader();
+		// dl.valueMap.put("账号", "123");
+		// dl.valueMap.put("时间", new Date());
+		// dl.valueMap.put("array", ar);
+		// String s = "{账号}{时间}";
+		//
+		// System.out.println(dl.parseValue(String.class, s));
+
+		NorshornDataLoader dl = new NorshornDataLoader("e:\\test.js");
+		System.out.println(dl.parseNormalValue("{notify_url}"));
 
 	}
 
 	public void put(String name, Object value) {
-		Matcher ma = BlockConstant.PATTERN_NAME_ARRAY.matcher(name);
-		while (ma.find()) {
-			String group = ma.group();
-			Matcher ma2 = BlockConstant.PATTERN_NAME_ARRAY_POSITION.matcher(group);
-			ma2.find();
-			String preName = name.substring(0, ma.start() + ma2.start());
-			if ("true".equals(String.valueOf(engine.executeScript("typeof " + preName + "=='undefined'")))) {
-				engine.executeScript(preName + " = []");
-			}
-		}
-
-		String[] splitByDot = name.split("\\.");
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < splitByDot.length - 1; i++) {
-			String dot = splitByDot[i];
-			sb.append(dot);
-			if ("true".equals(String.valueOf(engine.executeScript("typeof " + sb.toString() + "=='undefined'")))) {
-				engine.executeScript(sb.toString() + " = {}");
-			}
-			sb.append(".");
-		}
-
-		if (value instanceof String) {
-			String valString = (String) value;
-			valString = valString.replace("\n", "");
-
-			if (valString.startsWith("[") || valString.startsWith("{") || valString.startsWith("\"")) {
-
-				engine.executeScript(name + "=" + valString + "");
-			} else {
-				if (valString.indexOf("\"") != -1 && valString.indexOf("") == -1) {
-					engine.executeScript(name + "='" + valString + "'");
-				} else if (valString.indexOf("'") != -1 && valString.indexOf("\"") == -1) {
-					engine.executeScript(name + "=\"" + valString + "\"");
-				} else if (valString.indexOf("'") != -1 && valString.indexOf("\"") != -1) {
-					engine.executeScript(name + "=\"" + valString.replace("\"", "\\\"") + "\"");
-				} else {
-					engine.executeScript(name + "='" + valString + "'");
+		try {
+			Matcher ma = BlockConstant.PATTERN_NAME_ARRAY.matcher(name);
+			while (ma.find()) {
+				String group = ma.group();
+				Matcher ma2 = BlockConstant.PATTERN_NAME_ARRAY_POSITION.matcher(group);
+				ma2.find();
+				String preName = name.substring(0, ma.start() + ma2.start());
+				if ("true".equals(String.valueOf(engine.eval("typeof " + preName + "=='undefined'")))) {
+					engine.eval(preName + " = []");
 				}
 			}
-		} else {
-			engine.executeScript(name + "=" + JSON.toJSONString(value));
-		}
 
-		keys.add(name);
+			String[] splitByDot = name.split("\\.");
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < splitByDot.length - 1; i++) {
+				String dot = splitByDot[i];
+				sb.append(dot);
+				if ("true".equals(String.valueOf(engine.eval("typeof " + sb.toString() + "=='undefined'")))) {
+					engine.eval(sb.toString() + " = {}");
+				}
+				sb.append(".");
+			}
+
+			if (value instanceof String) {
+				String valString = (String) value;
+				valString = valString.replace("\n", "");
+
+				if (valString.startsWith("[") || valString.startsWith("{") || valString.startsWith("\"")) {
+
+					engine.eval(name + "=" + valString + "");
+				} else {
+					if (valString.indexOf("\"") != -1 && valString.indexOf("") == -1) {
+						engine.eval(name + "='" + valString + "'");
+					} else if (valString.indexOf("'") != -1 && valString.indexOf("\"") == -1) {
+						engine.eval(name + "=\"" + valString + "\"");
+					} else if (valString.indexOf("'") != -1 && valString.indexOf("\"") != -1) {
+						engine.eval(name + "=\"" + valString.replace("\"", "\\\"") + "\"");
+					} else {
+						engine.eval(name + "='" + valString + "'");
+					}
+				}
+			} else {
+				engine.eval(name + "=" + JSON.toJSONString(value));
+			}
+
+			keys.add(name);
+		} catch (ScriptException e) {
+			// TODO Auto-generated catch block
+			System.out.println(" put exception ");
+			System.out.println(name);
+			System.out.println(value);
+			e.printStackTrace();
+		}
 	}
 
 	public void putAll(Map<String, Object> object) {
@@ -161,19 +170,30 @@ public class JsDataLoader implements DataloaderInterface {
 	}
 
 	public Object get(String name) {
-		String type = (String) engine.executeScript("typeof(" + name + ")");
-		if (type.equals("object")) {
-			return engine.executeScript("JSON.stringify(" + name + ")");
-		} else if (type.equals("undefined")) {
-			return "";
-		} else {
-			return engine.get(name).toString();
+		try {
+			String type = (String) engine.eval("typeof(" + name + ")");
+			if (type.equals("object")) {
+				return engine.eval("JSON.stringify(" + name + ")");
+			} else if (type.equals("undefined")) {
+				return "";
+			} else {
+				return engine.eval(name);
+			}
+		} catch (ScriptException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		return "";
 	}
 
 	public void outputAll() {
 		for (String s : keys) {
-			System.out.println("name = " + s + " value =" + engine.executeScript(s));
+			try {
+				System.out.println("name = " + s + " value =" + engine.eval(s));
+			} catch (ScriptException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -428,26 +448,26 @@ public class JsDataLoader implements DataloaderInterface {
 		// TODO Auto-generated catch block
 		try {
 
-			String valueType = (String) engine.executeScript("typeof(" + pa + ")");
+			String valueType = (String) engine.eval("typeof(" + pa + ")");
 			if (valueType.equals("object")) {
-				s = String.valueOf(engine.executeScript("JSON.stringify(" + pa + ")"));
+				s = String.valueOf(engine.eval("JSON.stringify(" + pa + ")"));
 			} else if (valueType.equals("undefined")) {
 				return null;
 			} else {
-				s = String.valueOf(engine.executeScript(pa));
+				s = String.valueOf(engine.eval(pa));
 			}
 			return s;
-		} catch (Exception e) {
+		} catch (ScriptException e) {
 			// TODO Auto-generated catch block
 			pa = "'" + pa + "'";
 			try {
-				String valueType = (String) engine.executeScript("typeof(" + pa + ")");
+				String valueType = (String) engine.eval("typeof(" + pa + ")");
 				if (valueType.equals("object")) {
-					s = String.valueOf(engine.executeScript("JSON.stringify(" + pa + ")"));
+					s = String.valueOf(engine.eval("JSON.stringify(" + pa + ")"));
 				} else if (valueType.equals("undefined")) {
 					return null;
 				} else {
-					s = String.valueOf(engine.executeScript(pa));
+					s = String.valueOf(engine.eval(pa));
 				}
 			} catch (Exception se) {
 				se.printStackTrace();
@@ -497,19 +517,7 @@ public class JsDataLoader implements DataloaderInterface {
 	@Override
 	public void destory() {
 		// TODO Auto-generated method stub
-		for (String key : engine.getKeys()) {
-			if (!(engine.getType(key) == V8Value.UNDEFINED)) {
-				try {
-					if (engine.getObject(key) != null)
-						engine.getObject(key).release();
-				} catch (V8ResultUndefined e) {
-
-				}
-			}
-		}
-
-		engine.release(false);
-		;
+		
 	}
 
 }

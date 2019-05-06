@@ -62,6 +62,7 @@ public class ProcessAction {
 					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
 		} catch (Exception e) {
+			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
@@ -84,6 +85,7 @@ public class ProcessAction {
 					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
 		} catch (Exception e) {
+			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
@@ -109,6 +111,7 @@ public class ProcessAction {
 					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
 		} catch (Exception e) {
+			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}

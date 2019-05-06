@@ -189,7 +189,7 @@ public class DataServiceImpl implements DataService {
 			os.flush();
 			byte[] fileBytes = os.toByteArray();
 			os.close();
-			String[] ss = manager.getStorageClient().upload_file(fileBytes, "xls", null);
+			String[] ss = manager.upload_file(fileBytes, "xls", null);
 			resp.setHttpPath(fdfsPath);
 			resp.setGroupName(ss[0]);
 			resp.setPath(ss[1]);
@@ -209,7 +209,7 @@ public class DataServiceImpl implements DataService {
 		Workbook workbook = null;
 
 		try {
-			bytes = manager.getStorageClient().download_file(req.getGroupName(), req.getExcelPath());
+			bytes = manager.download_file(req.getGroupName(), req.getExcelPath());
 			ByteArrayInputStream steam = new ByteArrayInputStream(bytes);
 
 			if (req.getExcelPath().toLowerCase().endsWith("xls")) {
@@ -262,7 +262,7 @@ public class DataServiceImpl implements DataService {
 			os.flush();
 			byte[] fileBytes = os.toByteArray();
 			os.close();
-			String[] ss = manager.getStorageClient().upload_file(fileBytes, "xls", null);
+			String[] ss = manager.upload_file(fileBytes, "xls", null);
 			resp.setHttpPath(fdfsPath);
 			resp.setGroupName(ss[0]);
 			resp.setPath(ss[1]);
@@ -328,7 +328,7 @@ public class DataServiceImpl implements DataService {
 					String[] path;
 
 					try {
-						path = manager.getStorageClient().upload_file(pic.getBytes(), pic.getExt(), null);
+						path = manager.upload_file(pic.getBytes(), pic.getExt(), null);
 						sb.append(fdfsPath + path[0] + "/" + path[1] + ",");
 					} catch (IOException | MyException e) {
 						// TODO Auto-generated catch block
@@ -487,7 +487,6 @@ public class DataServiceImpl implements DataService {
 			return data;
 		}
 
-
 		for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
 			Row row = sheet.getRow(i);
 			Map<String, ExcelDataValue> single = new HashMap<String, ExcelDataValue>();
@@ -559,12 +558,9 @@ public class DataServiceImpl implements DataService {
 	/**
 	 * 获取Excel2003图片
 	 * 
-	 * @param sheetNum
-	 *            当前sheet编号
-	 * @param sheet
-	 *            当前sheet对象
-	 * @param workbook
-	 *            工作簿对象
+	 * @param sheetNum 当前sheet编号
+	 * @param sheet    当前sheet对象
+	 * @param workbook 工作簿对象
 	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
 	 * @throws IOException
 	 */
@@ -600,12 +596,9 @@ public class DataServiceImpl implements DataService {
 	/**
 	 * 获取Excel2007图片
 	 * 
-	 * @param sheetNum
-	 *            当前sheet编号
-	 * @param sheet
-	 *            当前sheet对象
-	 * @param workbook
-	 *            工作簿对象
+	 * @param sheetNum 当前sheet编号
+	 * @param sheet    当前sheet对象
+	 * @param workbook 工作簿对象
 	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
 	 */
 	public Map<String, List<PictureData>> getSheetPictrues07(XSSFSheet sheet, XSSFWorkbook workbook) {

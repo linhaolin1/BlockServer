@@ -134,8 +134,7 @@ public class ProcessServiceImpl implements ProcessService {
 				}
 			}
 		}
-		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
-				JSON.toJSONString(req.getObject()));
+		loader.destory();
 		resp.setResponse(map);
 	}
 

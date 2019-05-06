@@ -46,13 +46,13 @@ public class SequenceServiceImpl implements SequenceService {
 		if (sequenceId == null)
 			return;
 
-//		executor.execute(new Runnable() {
-//			@Override
-//			public void run() {
-//				// TODO Auto-generated method stub
-//				sequenceDao.addNewRecord(string, sequenceId, time, processId, blockId, executeId, remark);
-//			}
-//		});
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				sequenceDao.addNewRecord(string, sequenceId, time, processId, blockId, executeId, remark);
+			}
+		});
 	}
 
 }

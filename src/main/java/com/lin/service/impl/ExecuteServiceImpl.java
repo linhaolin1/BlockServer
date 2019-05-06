@@ -26,11 +26,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
+import com.jolbox.bonecp.BoneCPDataSource;
 import com.lin.NettyServer;
 import com.lin.block.ProcessArgument;
 import com.lin.block.ProcessArgumentComplex;
@@ -50,6 +53,7 @@ import com.lin.dao.ProcessArgumentComplexDao;
 import com.lin.dao.ProcessArgumentDao;
 import com.lin.dao.ProcessDao;
 import com.lin.entity.BlockEntity;
+import com.lin.entity.DataSourceEntity;
 import com.lin.entity.ExecuteEntity;
 import com.lin.entity.ExecuteParamEntity;
 import com.lin.entity.NextEntity;
@@ -82,12 +86,14 @@ import com.lin.request.resp.SaveExecuteResp;
 import com.lin.service.ExecuteService;
 import com.lin.service.SequenceService;
 import com.lin.util.DataloaderInterface;
+import com.lin.util.FileManager;
 import com.lin.util.ParamUtil;
 
 @Service
-@Transactional(rollbackFor=Exception.class)
+@Transactional(value = "businessTransactionManager", rollbackFor = Exception.class)
 public class ExecuteServiceImpl implements ExecuteService {
 
+	@Qualifier("businessDataSource")
 	@Autowired
 	DataSource dataSource;
 
@@ -129,9 +135,9 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	HttpClientBuilder bu = HttpClientBuilder.create();
 
-	private static ConcurrentHashMap<Integer, CopyOnWriteArrayList<AbstractPlugin>> classList = new ConcurrentHashMap<Integer, CopyOnWriteArrayList<AbstractPlugin>>();
-
-	private static ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>> blockResourceList = new ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>>();
+	private static ConcurrentHashMap<String, URLClassLoader> classLoaderResourceList = new ConcurrentHashMap<String, URLClassLoader>();
+	private static ConcurrentHashMap<Integer, DruidDataSource> dataSourceResourceList = new ConcurrentHashMap<Integer, DruidDataSource>();
+	private static ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>> processResourceList = new ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>>();
 
 	@Override
 	public void saveExecuteParam(SaveExecuteParamReq req, SaveExecuteParamResp resp) {
@@ -252,6 +258,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId)
 			throws InvocationTargetException {
+
 		execute(block, loader, sequenceId, block.getProcess());
 		Long time = System.currentTimeMillis();
 		Integer i = next(loader, block);
@@ -264,17 +271,28 @@ public class ExecuteServiceImpl implements ExecuteService {
 	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId)
 			throws InvocationTargetException {
 		// TODO Auto-generated method stub
+		Long time = System.currentTimeMillis();
 		List<ExecuteEntity> executes = executeDao.findFromTempByBlock(block.getId());
+		sequenceService.save("load execute", sequenceId, System.currentTimeMillis() - time, processId, null, null,
+				null);
 
 		for (ExecuteEntity e : executes) {
+			time = System.currentTimeMillis();
 			PluginMethodEntity method = pluginMethodDao.findById(e.getMethod());
 			PluginEntity plugin = pluginDao.findById(method.getPlugin());
 			List<ExecuteParamEntity> exeParams = executeParamDao.findMethodParamFromTempByExecute(e.getId());
 			ExecuteParamEntity returnParam = executeParamDao.findMethodReturnParamFromTempByExecute(e.getId());
-
+			sequenceService.save("load exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
+					e.getBlock(), e.getId(), null);
+			time = System.currentTimeMillis();
 			Execute ee = new Execute(plugin, method, exeParams, returnParam, e, sequenceId, block.getId(), processId,
-					getClassInstance(e, plugin));
+					getClassInstanceForSequence(e, plugin, sequenceId, processId));
+			sequenceService.save("init exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
+					e.getBlock(), e.getId(), null);
+			time = System.currentTimeMillis();
 			ee.execute(loader);
+			sequenceService.save("execute exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
+					e.getBlock(), e.getId(), null);
 		}
 	}
 
@@ -301,6 +319,8 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	public AbstractPlugin getClassInstance(ExecuteEntity execute, PluginEntity plugin) {
 		// TODO Auto-generated method stub
+		Long time = System.currentTimeMillis();
+
 		AbstractPlugin instance = null;
 		try {
 			if ((instance = (AbstractPlugin) NettyServer.context
@@ -313,47 +333,34 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 		BlockEntity be = blockDao.findFromTempById(execute.getBlock());
 
-		if (!classList.containsKey(execute.getId())) {
-			CopyOnWriteArrayList<AbstractPlugin> array = new CopyOnWriteArrayList<AbstractPlugin>();
-			classList.put(execute.getId(), array);
-		}
-
-		for (AbstractPlugin ob : classList.get(execute.getId())) {
-			if (ob.getClass().getName().equals(plugin.getClassName())) {
-				instance = ob;
-				break;
-			}
-		}
-
-		ClassLoader cl;
 		if (instance == null) {
 			URLClassLoader classLoader = null;
+
+			if (classLoaderResourceList.containsKey(plugin.getClassName())) {
+				classLoader = classLoaderResourceList.get(plugin.getClassName());
+			}
+
 			try {
-				File file = new File(plugin.getFileName());
-				URL url = file.toURI().toURL();
-				classLoader = new URLClassLoader(new URL[] { url });
+				if (classLoader == null) {
+					File file = new File(plugin.getFileName());
+					URL url = file.toURI().toURL();
+					classLoader = new URLClassLoader(new URL[] { url });
+					classLoaderResourceList.put(plugin.getClassName(), classLoader);
+				}
 				Class clz = classLoader.loadClass(plugin.getClassName());
 				clz.getDeclaredMethods();
 
 				AbstractPlugin ob = null;
 				ob = (AbstractPlugin) clz.newInstance();
 
-				classList.get(execute.getId()).add(ob);
 				instance = ob;
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
 					| MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
-				if (classLoader != null) {
-					// try {
-					// classLoader.close();
-					// } catch (IOException e) {
-					// e.printStackTrace();
-					// }
-				}
 			}
 		}
+
 		Field[] fields = instance.getClass().getDeclaredFields();
 		for (Field f : fields) {
 			if (f.getAnnotation(InitParam.class) != null) {
@@ -370,13 +377,78 @@ public class ExecuteServiceImpl implements ExecuteService {
 		return instance;
 	}
 
+	public AbstractPlugin getClassInstanceForSequence(ExecuteEntity execute, PluginEntity plugin, Long sequenceId,
+			int processId) {
+		// TODO Auto-generated method stub
+		Long time = System.currentTimeMillis();
+		AbstractPlugin instance = null;
+		try {
+			if ((instance = (AbstractPlugin) NettyServer.context
+					.getBean(Class.forName(plugin.getClassName()))) != null) {
+				return instance;
+			}
+		} catch (Exception e) {
+
+		}
+
+		BlockEntity be = blockDao.findFromTempById(execute.getBlock());
+
+		if (instance == null) {
+			URLClassLoader classLoader = null;
+
+			if (classLoaderResourceList.containsKey(plugin.getClassName())) {
+				classLoader = classLoaderResourceList.get(plugin.getClassName());
+			}
+
+			try {
+				if (classLoader == null) {
+					File file = new File(plugin.getFileName());
+					URL url = file.toURI().toURL();
+					classLoader = new URLClassLoader(new URL[] { url });
+					classLoaderResourceList.put(plugin.getClassName(), classLoader);
+				}
+				Class clz = classLoader.loadClass(plugin.getClassName());
+				clz.getDeclaredMethods();
+
+				AbstractPlugin ob = null;
+				ob = (AbstractPlugin) clz.newInstance();
+
+				instance = ob;
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
+					| MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		sequenceService.save("execute load class " + plugin.getClassName(), sequenceId,
+				System.currentTimeMillis() - time, processId, execute.getBlock(), execute.getId(), null);
+		time = System.currentTimeMillis();
+		Field[] fields = instance.getClass().getDeclaredFields();
+		for (Field f : fields) {
+			if (f.getAnnotation(InitParam.class) != null) {
+				f.setAccessible(true);
+				try {
+					f.set(instance, getBlockResource(be, f.getType()));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		sequenceService.save("execute load class resource" + plugin.getClassName(), sequenceId,
+				System.currentTimeMillis() - time, processId, execute.getBlock(), execute.getId(), null);
+
+		return instance;
+	}
+
 	private Object getBlockResource(BlockEntity block, Class clz) {
 
 		ProcessEntity pe = processDao.findFromTempById(block.getProcess());
 
-		if (!blockResourceList.contains(block.getId())) {
+		if (!processResourceList.contains(pe.getId())) {
 			CopyOnWriteArrayList<Object> array = new CopyOnWriteArrayList<Object>();
-			blockResourceList.put(block.getId(), array);
+			processResourceList.put(pe.getId(), array);
 		}
 
 		// for (Object ob : blockResourceList.get(block.getId())) {
@@ -385,26 +457,44 @@ public class ExecuteServiceImpl implements ExecuteService {
 		// }
 		// }
 
-		System.out.println("thread name=" + Thread.currentThread().getName());
+		if (clz.equals(FileManager.class)) {
+			return NettyServer.context.getBean(FileManager.class);
+		}
+		if (clz.equals(Connection.class))
 
-		if (clz.equals(Connection.class)) {
-			return DataSourceUtils.getConnection(dataSource);
+		{
 
-			// if (pe.getDataSource() == null) {
-			// return dataSource;
-			// }
+			if (pe.getDataSource() == null) {
+				return DataSourceUtils.getConnection(dataSource);
+			}
+			DruidDataSource cpSource = null;
 
-			// DataSourceEntity dataSource =
-			// dataSourceDao.findById(pe.getDataSource());
-			//
-			// // TODO Auto-generated method stub
-			// BoneCPDataSource cpSource = new BoneCPDataSource();
-			// cpSource.setJdbcUrl(dataSource.getJdbcUrl());
-			// cpSource.setDriverClass(dataSource.getClassName());
-			// cpSource.setUsername(dataSource.getUsername());
-			// cpSource.setPassword(dataSource.getPassword());
-			// blockResourceList.get(block.getId()).add(cpSource);
-			// return cpSource;
+			if (dataSourceResourceList.containsKey(pe.getId())) {
+				cpSource = dataSourceResourceList.get(pe.getId());
+			}
+
+			if (cpSource == null)
+				for (Object processResource : processResourceList.get(pe.getDataSource())) {
+					if (processResource instanceof DruidDataSource) {
+						cpSource = (DruidDataSource) processResource;
+						break;
+					}
+				}
+
+			if (cpSource == null) {
+				DataSourceEntity processDataResource = dataSourceDao.findById(pe.getDataSource());
+				// TODO Auto-generated method stub
+				cpSource = new DruidDataSource();
+				cpSource.setUrl(processDataResource.getJdbcUrl());
+				cpSource.setDriverClassName(processDataResource.getClassName());
+				cpSource.setUsername(processDataResource.getUsername());
+				cpSource.setPassword(processDataResource.getPassword());
+				cpSource.setInitialSize(5);
+				cpSource.setMaxActive(10);
+				processResourceList.get(pe.getId()).add(cpSource);
+				dataSourceResourceList.put(pe.getDataSource(), cpSource);
+			}
+			return DataSourceUtils.getConnection(cpSource);
 		}
 
 		if (clz.equals(HttpClient.class)) {

@@ -91,7 +91,7 @@ public class ExecuteAction {
 		GetExecuteVariableParamsResp resp = new GetExecuteVariableParamsResp();
 		try {
 			executeService.getExecuteVariableParams(req, resp);
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
@@ -99,7 +99,7 @@ public class ExecuteAction {
 			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
 	}
-	
+
 	@Subscribe
 	@RequestMapper(url = "/block-server/deleteExecute", codecName = "blockJsonDecodec", clazz = DelExecuteReq.class)
 	public void deleteExecute(DelExecuteReq req) {
@@ -115,6 +115,5 @@ public class ExecuteAction {
 			ResponseUtil.response(req, JSON.toJSONString(resp));
 		}
 	}
-	
-	
+
 }

@@ -2,6 +2,9 @@ package com.lin;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -26,17 +29,18 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openxmlformats.schemas.drawingml.x2006.spreadsheetDrawing.CTMarker;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.lin.request.req.SaveExecuteParamReq;
+
 public class Test {
 
 	/**
 	 * 获取Excel2003图片
 	 * 
-	 * @param sheetNum
-	 *            当前sheet编号
-	 * @param sheet
-	 *            当前sheet对象
-	 * @param workbook
-	 *            工作簿对象
+	 * @param sheetNum 当前sheet编号
+	 * @param sheet    当前sheet对象
+	 * @param workbook 工作簿对象
 	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
 	 * @throws IOException
 	 */
@@ -65,12 +69,9 @@ public class Test {
 	/**
 	 * 获取Excel2007图片
 	 * 
-	 * @param sheetNum
-	 *            当前sheet编号
-	 * @param sheet
-	 *            当前sheet对象
-	 * @param workbook
-	 *            工作簿对象
+	 * @param sheetNum 当前sheet编号
+	 * @param sheet    当前sheet对象
+	 * @param workbook 工作簿对象
 	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
 	 */
 	public static Map<String, PictureData> getSheetPictrues07(int sheetNum, XSSFSheet sheet, XSSFWorkbook workbook) {
@@ -137,5 +138,9 @@ public class Test {
 			}
 		}
 		return myClassName;
+	}
+
+	public static void main(String[] args) throws IOException {
+		Files.write(Paths.get("C:\\Websites\\123.png"), new byte[1024]);
 	}
 }

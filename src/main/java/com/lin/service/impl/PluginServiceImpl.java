@@ -127,7 +127,6 @@ public class PluginServiceImpl implements PluginService {
 								for (Method method : methods) {
 
 									PluginMethodAnnotation exm = method.getAnnotation(PluginMethodAnnotation.class);
-									System.out.println(method.getName() + "  " + (exm == null));
 									if (exm == null)
 										continue;
 

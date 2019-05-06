@@ -84,6 +84,7 @@
 	})
 	
 	$(" div.closeable-panel  div.panel  div button.closesub").on("click",function(){
+		$(this).parents(".closeable-panel").removeAttr("belong-id");
 		$(this).parents(".closeable-panel").hide();
 	})
 	

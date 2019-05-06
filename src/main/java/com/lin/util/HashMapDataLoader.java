@@ -493,4 +493,10 @@ public class HashMapDataLoader implements DataloaderInterface {
 		return parseValue(name);
 	}
 
+	@Override
+	public void destory() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

@@ -18,6 +18,11 @@ public abstract class BaseDao {
 	// this.dataSource = dataSource;
 	// }
 
+	@Qualifier("businessSqlSessionTemplate")
+	@Autowired
+	protected SqlSessionTemplate businessTemplate;
+
+	@Qualifier("baseSqlSessionTemplate")
 	@Autowired
 	protected SqlSessionTemplate template;
 

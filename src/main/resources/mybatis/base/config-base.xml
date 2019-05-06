@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true" /><!-- 打开属性驼峰匹配，不用写resultMap，room_id会自动对应到roomId -->
+	</settings>
+	<typeAliases><!-- 这个标签的作用是扫入model，在 resultType 就可以直接写类名，不需要完整路径(com.xx.xx....java) -->
+		<!--<package name="com.yunva.admin.base.entity" /> -->
+		<!-- <package name="com.yunva.admin.admin.entity" /> -->
+		<!-- <package name="com.yunva.admin.cp.entity" /> -->
+		<!-- <package name="com.yunva.admin.sp.entity" /> -->
+	</typeAliases>
+	<mappers>
+		<mapper resource="mybatis/base/mapper/block.xml" />
+		<mapper resource="mybatis/base/mapper/blockDataSource.xml" />
+		<mapper resource="mybatis/base/mapper/dataSource.xml" />
+		<mapper resource="mybatis/base/mapper/dataSourceParam.xml" />
+		<mapper resource="mybatis/base/mapper/dataTable.xml" />
+		<mapper resource="mybatis/base/mapper/execute.xml" />
+		<mapper resource="mybatis/base/mapper/executeParam.xml" />
+		<mapper resource="mybatis/base/mapper/next.xml" />
+		<mapper resource="mybatis/base/mapper/nextRequirement.xml" />
+		<mapper resource="mybatis/base/mapper/param.xml" />
+		<mapper resource="mybatis/base/mapper/plugin.xml" />
+		<mapper resource="mybatis/base/mapper/pluginMethod.xml" />
+		<mapper resource="mybatis/base/mapper/process.xml" />
+		<mapper resource="mybatis/base/mapper/processArgument.xml" />
+		<mapper resource="mybatis/base/mapper/processArgumentComplex.xml" />
+		<mapper resource="mybatis/base/mapper/htmlParam.xml" />
+		<mapper resource="mybatis/base/mapper/dynamicRequest.xml" />
+		<mapper resource="mybatis/base/mapper/sequenceRecord.xml" />
+	</mappers>
+</configuration>

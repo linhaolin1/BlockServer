@@ -101,8 +101,7 @@ public class ParamUtil {
 	}
 
 	public static boolean compare(String param1, String method, String param2) {
-
-
+		
 		if (StringUtils.isBlank(param1) && StringUtils.isBlank(param2) && method.equals("=")) {
 			return true;
 		}
@@ -113,10 +112,12 @@ public class ParamUtil {
 			try {
 				return Double.parseDouble(param1) == Double.parseDouble(param2) ? true : false;
 			} catch (NumberFormatException e) {
-
 			}
-
+			
 			if (param1 == param2)
+				return true;
+			
+			if (String.valueOf(param1).equals(String.valueOf(param2)))
 				return true;
 
 			if (param1 != null) {

@@ -19,11 +19,12 @@ public class JsonDecodec implements HttpDecodec<String> {
 
 		try {
 			if (StringUtils.isNotEmpty(s)) {
+
 				return (T) JSON.parseObject(URLDecoder.decode(s, "utf-8"), clazz);
 //				return (T) JsonUtil.jsonToObject(URLDecoder.decode(s, "utf-8"), clazz);
 			}
 			return null;
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			this.logger.error("decode:{} failure.exception:{}", s, ExceptionUtils.getStackTrace(e));
 		}

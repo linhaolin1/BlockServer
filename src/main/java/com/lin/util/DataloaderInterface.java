@@ -10,4 +10,6 @@ public interface DataloaderInterface {
 	public void putAll(Map<String, Object> object);
 
 	public Object get(String name);
+
+	public void destory();
 }

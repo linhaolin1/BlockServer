@@ -28,10 +28,10 @@ public class NettyServer {
 					}
 			}
 		}).start();
-		
 
-//		 PluginService service=context.getBean(PluginService.class);
-//		 service.savePlugin("D:\\Users\\lion\\workspace\\exampleWeixinPlugin\\target\\exampleWeixinPlugin-1.0.jar",
-//		 "微信功能", "");
+//		PluginService service = context.getBean(PluginService.class);
+//		service.savePlugin(
+//				"C:\\code\\exampleDatabaseController\\target\\exampleDatabaseController-1.0.jar", "示例数据库操作",
+//				"");
 	}
 }
