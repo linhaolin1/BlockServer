@@ -1,5 +1,7 @@
 package com.lin.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -13,15 +15,19 @@ public class RedisManager {
 		poolConfig.setMaxIdle(20);
 		poolConfig.setTestOnBorrow(true);
 		poolConfig.setTestOnReturn(true);
-		jedis = new JedisPool(poolConfig, host, port, 1000, pass);
+		if (StringUtils.isBlank(pass)) {
+			jedis = new JedisPool(poolConfig, host, port, 1000);
+		} else
+			jedis = new JedisPool(poolConfig, host, port, 1000, pass);
 	}
 
 	public Jedis getJedis() {
 		return jedis.getResource();
 	}
 
-	public void set() {
-
+	public void set(String key, String value) {
+		Jedis client = getJedis();
+		client.set(key, value);
 	}
 
 	public Long incr(String key) {

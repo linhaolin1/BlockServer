@@ -17,6 +17,14 @@ public abstract class Propertyable implements Statisable {
 		return this.properties.get(key);
 	}
 
+	public Map<String, Object> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Map<String, Object> properties) {
+		this.properties = properties;
+	}
+
 	public long getTimeMillis() {
 		return this.timeMillis;
 	}

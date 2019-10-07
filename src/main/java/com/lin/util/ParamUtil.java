@@ -101,9 +101,12 @@ public class ParamUtil {
 	}
 
 	public static boolean compare(String param1, String method, String param2) {
-		
+
 		if (StringUtils.isBlank(param1) && StringUtils.isBlank(param2) && method.equals("=")) {
 			return true;
+		} else if ((StringUtils.isBlank(param1) || StringUtils.isBlank(param2))
+				&& (!StringUtils.isBlank(param1) || !StringUtils.isBlank(param2)) && method.equals("=")) {
+			return false;
 		}
 
 		Pattern pattern = null;
@@ -113,10 +116,10 @@ public class ParamUtil {
 				return Double.parseDouble(param1) == Double.parseDouble(param2) ? true : false;
 			} catch (NumberFormatException e) {
 			}
-			
+
 			if (param1 == param2)
 				return true;
-			
+
 			if (String.valueOf(param1).equals(String.valueOf(param2)))
 				return true;
 
@@ -126,13 +129,32 @@ public class ParamUtil {
 				return param2.equals(param1);
 			}
 		} else if (method.equals("<")) {
-			return Double.parseDouble(param1) < Double.parseDouble(param2) ? true : false;
+			try {
+				return Double.parseDouble(param1) < Double.parseDouble(param2);
+			} catch (NumberFormatException e) {
+				return param1.compareTo(param2) < 0;
+			}
+
 		} else if (method.equals(">")) {
-			return Double.parseDouble(param1) > Double.parseDouble(param2) ? true : false;
+			try {
+				return Double.parseDouble(param1) > Double.parseDouble(param2);
+			} catch (NumberFormatException e) {
+				return param1.compareTo(param2) > 0;
+			}
+
 		} else if (method.equals("<=")) {
-			return Double.parseDouble(param1) <= Double.parseDouble(param2) ? true : false;
+			try {
+				return Double.parseDouble(param1) <= Double.parseDouble(param2);
+			} catch (NumberFormatException e) {
+				return param1.compareTo(param2) <= 0;
+			}
 		} else if (method.equals(">=")) {
-			return Double.parseDouble(param1) >= Double.parseDouble(param2) ? true : false;
+			try {
+				return Double.parseDouble(param1) >= Double.parseDouble(param2);
+			} catch (NumberFormatException e) {
+				return param1.compareTo(param2) >= 0;
+			}
+
 		} else if (method.equals("<>")) {
 			return !compare(param1, "=", param2);
 		} else if (method.equals("like")) {
@@ -157,9 +179,6 @@ public class ParamUtil {
 		String parsedContent = (String) loader.parseValue(requirement.getParam1());
 		String parsedContent2 = (String) loader.parseValue(requirement.getParam2());
 		String method = requirement.getMethod();
-
-		if (parsedContent == null || parsedContent2 == null)
-			return false;
 
 		return compare(parsedContent, method, parsedContent2);
 	}

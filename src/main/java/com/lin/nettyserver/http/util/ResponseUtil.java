@@ -37,9 +37,10 @@ public class ResponseUtil {
 
 		if (null != response) {
 			response.headers().set("Content-Type", "application/json; charset=UTF-8");
+			response.headers().set("Access-Control-Allow-Origin", "*");
+			response.headers().set("Access-Control-Allow-Headers", "*");
 			if (keepAlive.booleanValue()) {
 				response.headers().set("Content-Length", Integer.valueOf(response.content().readableBytes()));
-
 				response.headers().set("Connection", "keep-alive");
 			}
 			ChannelFuture channelFuture = channel.writeAndFlush(response);

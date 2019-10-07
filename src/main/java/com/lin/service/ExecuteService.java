@@ -9,6 +9,7 @@ import com.lin.request.req.GetExecuteVariableParamsReq;
 import com.lin.request.req.SaveExecuteParamReq;
 import com.lin.request.req.SaveExecuteReq;
 import com.lin.request.resp.DelExecuteResp;
+import com.lin.request.resp.ExportProcessResp;
 import com.lin.request.resp.GetExecuteParamsResp;
 import com.lin.request.resp.GetExecuteVariableParamsResp;
 import com.lin.request.resp.SaveExecuteParamResp;
@@ -25,7 +26,8 @@ public interface ExecuteService {
 
 	public void getExecuteParams(GetExecuteParamsReq req, GetExecuteParamsResp resp);
 
-	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId) throws InvocationTargetException;
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId, ExportProcessResp resp)
+			throws InvocationTargetException;
 
 	void deleteExecute(DelExecuteReq req, DelExecuteResp resp);
 

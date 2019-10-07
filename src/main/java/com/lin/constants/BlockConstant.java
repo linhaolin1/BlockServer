@@ -63,5 +63,8 @@ public class BlockConstant {
 	public static final String PROCESS_SEQUENCE_RESPONSE = "responsed";
 	// public static final Pattern PATTERN_PARAM_ARRAY =
 	// Pattern.compile("setArray(a-zA-Z0-9_\\u4e00-\\u9fa5]+)");
-
+	public static final String PROPERITY_KEY_IP = "ip";
+	
+	public static final String PROPERITY_KEY_MSG = "RESP_MSG";
+	public static final String PROPERITY_KEY_RESULT = "RESP_RESULT";
 }

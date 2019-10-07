@@ -8,19 +8,31 @@
 		<result column="executeName" property="executeName" />
 	</resultMap>
 
-	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteEntity" useGeneratedKeys="true" keyProperty="id">
-		insert into Execute (id,method,block,executeName) values(
+	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteEntity"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into Execute
+		(id,method,block,executeName) values(
 		#{id},#{method},
 		#{block},#{executeName} )
 	</insert>
 
-	<select id="findFromTempByBlock" resultMap="execute" parameterType="int">
+	<select id="findFromTempByBlock" resultMap="execute"
+		parameterType="int">
 		select * from Execute where block= #{block}
 	</select>
-	
-	<select id="findFromTempByBlocks" resultMap="execute" parameterType="map">
-	    select * from Execute where block in  (${blocks})
+
+	<select id="findFromTempByBlocks" resultMap="execute"
+		parameterType="map">
+		select * from Execute where block in (${blocks})
 	</select>
+
+
+	<select id="findFromTempByProcess" resultMap="execute"
+		parameterType="map">
+		select * from Execute e where exists (select * from Block b,Process p where
+		e.block=b.id and b.process=p.id and p.id=#{processId})
+	</select>
+
 
 	<select id="findFromTempById" resultMap="execute" parameterType="int">
 		select *

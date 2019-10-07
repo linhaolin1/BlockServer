@@ -55,4 +55,9 @@ public class ExecuteDao extends BaseDao {
 		map.put("blocks", sb.toString());
 		return template.selectList("executeDao.findFromTempByBlocks", map);
 	}
+
+	public List<ExecuteEntity> findFromTempByProcess(Integer processId) {
+		// TODO Auto-generated method stub
+		return template.selectList("executeDao.findFromTempByProcess", processId);
+	}
 }

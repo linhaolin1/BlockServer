@@ -12,6 +12,10 @@ public class NextRequirementDao extends BaseDao {
 	public List<NextRequirementEntity> findFromTempByNext(int next) {
 		return template.selectList("nextRequirementDao.findFromTempByNext", next);
 	}
+	
+	public List<NextRequirementEntity> findFromTempByProcess(int processId) {
+		return template.selectList("nextRequirementDao.findFromTempByProcess", processId);
+	}
 
 	public boolean addToTemp(NextRequirementEntity entity) {
 		return template.insert("nextRequirementDao.addToTemp", entity) > 0;

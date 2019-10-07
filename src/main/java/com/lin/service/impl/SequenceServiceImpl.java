@@ -43,16 +43,24 @@ public class SequenceServiceImpl implements SequenceService {
 	public void save(final String string, final Long sequenceId, final Long time, final Integer processId,
 			final Integer blockId, final Integer executeId, final String remark) {
 		// TODO Auto-generated method stub
-		if (sequenceId == null)
-			return;
+		if (sequenceId == null) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					sequenceDao.addNewRecord(string, -1L, time, processId, blockId, executeId, remark);
+				}
+			});
+		} else {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					sequenceDao.addNewRecord(string, sequenceId, time, processId, blockId, executeId, remark);
+				}
+			});
+		}
 
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				sequenceDao.addNewRecord(string, sequenceId, time, processId, blockId, executeId, remark);
-			}
-		});
 	}
 
 }

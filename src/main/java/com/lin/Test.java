@@ -1,146 +1,102 @@
 package com.lin;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.sql.SQLException;
 
-import org.apache.poi.POIXMLDocumentPart;
-import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
-import org.apache.poi.hssf.usermodel.HSSFPicture;
-import org.apache.poi.hssf.usermodel.HSSFPictureData;
-import org.apache.poi.hssf.usermodel.HSSFShape;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.PictureData;
-import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
-import org.apache.poi.xssf.usermodel.XSSFDrawing;
-import org.apache.poi.xssf.usermodel.XSSFPicture;
-import org.apache.poi.xssf.usermodel.XSSFShape;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.openxmlformats.schemas.drawingml.x2006.spreadsheetDrawing.CTMarker;
-
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.lin.request.req.SaveExecuteParamReq;
 
 public class Test {
 
-	/**
-	 * 获取Excel2003图片
-	 * 
-	 * @param sheetNum 当前sheet编号
-	 * @param sheet    当前sheet对象
-	 * @param workbook 工作簿对象
-	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
-	 * @throws IOException
-	 */
-	public static Map<String, PictureData> getSheetPictrues03(int sheetNum, HSSFSheet sheet, HSSFWorkbook workbook) {
+	public static void main(String[] args) throws SQLException {
 
-		Map<String, PictureData> sheetIndexPicMap = new HashMap<String, PictureData>();
-		List<HSSFPictureData> pictures = workbook.getAllPictures();
-		if (pictures.size() != 0) {
-			for (HSSFShape shape : sheet.getDrawingPatriarch().getChildren()) {
-				HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
-				if (shape instanceof HSSFPicture) {
-					HSSFPicture pic = (HSSFPicture) shape;
-					int pictureIndex = pic.getPictureIndex() - 1;
-					HSSFPictureData picData = pictures.get(pictureIndex);
-					String picIndex = String.valueOf(sheetNum) + "_" + String.valueOf(anchor.getRow1()) + "_"
-							+ String.valueOf(anchor.getCol1());
-					sheetIndexPicMap.put(picIndex, picData);
-				}
-			}
-			return sheetIndexPicMap;
-		} else {
-			return null;
-		}
-	}
+		// TODO Auto-generated constructor stub
+//		DruidDataSource cpSource = new DruidDataSource();
+//		cpSource.setUrl("jdbc:mysql://106.52.110.245:3306/xianggou_business?useUnicode=true&characterEncoding=UTF-8");
+//		cpSource.setDriverClassName("com.mysql.jdbc.Driver");
+//		cpSource.setUsername("linhaolin1");
+//		cpSource.setPassword("Angel929");
+//		cpSource.setInitialSize(5);
+//		cpSource.setMaxActive(10);
+//
+//		MainClass mc = new MainClass();
+//		mc.setConn(cpSource.getConnection());
+//
+//		String s = "select tpa.id as ActivityId,tps.PId,p.Name,tpa.LimitCount,tpa.StartTime,tpa.EndTime,tpa.AInstructions,tpa.Title,tpa.Details,tpa.Icon,tpa.DisplayOrder,tpa.State from xb_timeproductactivity tpa INNER JOIN xb_timeproductsku tps on tpa.id = tps.AId INNER JOIN xb_products p on tps.PId = p.id where tpa.id=1956 group by tpa.id";
+//
+//		DirectSqlReq req = new DirectSqlReq();
+//		req.setSql(s);
+//		req.setLimitRow("10");
+//		req.setPage("1");
+//
+//		DirectSqlResp resp = new DirectSqlResp();
+//		mc.directSql(req, resp);
+//		JSON.DEFFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+//		System.out.println(JSON.toJSONStringWithDateFormat(resp.getResult(), "yyyy-MM-dd HH:mm:ss"));
 
-	/**
-	 * 获取Excel2007图片
-	 * 
-	 * @param sheetNum 当前sheet编号
-	 * @param sheet    当前sheet对象
-	 * @param workbook 工作簿对象
-	 * @return Map key:图片单元格索引（0_1_1）String，value:图片流PictureData
-	 */
-	public static Map<String, PictureData> getSheetPictrues07(int sheetNum, XSSFSheet sheet, XSSFWorkbook workbook) {
-		Map<String, PictureData> sheetIndexPicMap = new HashMap<String, PictureData>();
-
-		for (POIXMLDocumentPart dr : sheet.getRelations()) {
-			if (dr instanceof XSSFDrawing) {
-				XSSFDrawing drawing = (XSSFDrawing) dr;
-				List<XSSFShape> shapes = drawing.getShapes();
-				for (XSSFShape shape : shapes) {
-					XSSFPicture pic = (XSSFPicture) shape;
-					XSSFClientAnchor anchor = pic.getPreferredSize();
-					CTMarker ctMarker = anchor.getFrom();
-					String picIndex = String.valueOf(sheetNum) + "_" + ctMarker.getRow() + "_" + ctMarker.getCol();
-					sheetIndexPicMap.put(picIndex, pic.getPictureData());
-				}
-			}
-		}
-
-		return sheetIndexPicMap;
-	}
-
-	public static void printImg(List<Map<String, PictureData>> sheetList) throws IOException {
-
-		for (Map<String, PictureData> map : sheetList) {
-			Object key[] = map.keySet().toArray();
-			for (int i = 0; i < map.size(); i++) {
-				// 获取图片流
-				PictureData pic = map.get(key[i]);
-				// 获取图片索引
-				String picName = key[i].toString();
-				// 获取图片格式
-				String ext = pic.suggestFileExtension();
-
-				byte[] data = pic.getData();
-
-				FileOutputStream out = new FileOutputStream("f:\\pic" + picName + "." + ext);
-				out.write(data);
-				out.close();
-			}
-		}
+		// JsDataLoader dl = new JsDataLoader("e:\\test.js");
+		// dl.put("test", resp.getResult());
+		// System.out.println(dl.get("test"));
 
 	}
 
-	public static List<String> getClassNameByJar(String jarPath) throws IOException {
-		List<String> myClassName = new ArrayList<String>();
-		JarFile jarFile = null;
-		try {
-			jarFile = new JarFile(jarPath);
-			Enumeration<JarEntry> entrys = jarFile.entries();
-			while (entrys.hasMoreElements()) {
-				JarEntry jarEntry = entrys.nextElement();
-				String entryName = jarEntry.getName();
-				if (entryName.endsWith(".class")) {
-					entryName = entryName.replace("/", ".").substring(0, entryName.lastIndexOf("."));
-					myClassName.add(entryName);
-				}
-			}
-		} catch (Exception e) {
-			// SystemLog.Log(LogType.systemInfo, e.getMessage(), e);
-		} finally {
-			if (jarFile != null) {
-				jarFile.close();
-			}
-		}
-		return myClassName;
-	}
+	// public static void main(String[] args) throws IOException {
+	//
+	// ConsulClient client = new ConsulClient("148.70.22.79");
+	// byte[] binaryData = new byte[] {1,2,3,4,5,6,7};
+	// client.setKVBinaryValue("someKey", binaryData);
+	//
+	// client.setKVValue("com.my.app.foo", "foo");
+	// client.setKVValue("com.my.app.bar", "bar");
+	// client.setKVValue("com.your.app.foo", "hello");
+	// client.setKVValue("com.your.app.bar", "world");
+	//
+	// // get single KV for key
+	// Response<GetValue> keyValueResponse =
+	// client.getKVValue("com.my.app.foo");
+	// System.out.println(keyValueResponse.getValue().getKey() + ": " +
+	// keyValueResponse.getValue().getDecodedValue()); // prints
+	// "com.my.app.foo: foo"
+	//
+	// // get list of KVs for key prefix (recursive)
+	// Response<List<GetValue>> keyValuesResponse =
+	// client.getKVValues("com.my");
+	// keyValuesResponse.getValue().forEach(value ->
+	// System.out.println(value.getKey() + ": " + value.getDecodedValue())); //
+	// prints "com.my.app.foo: foo" and "com.my.app.bar: bar"
+	//
+	// //list known datacenters
+	// Response<List<String>> response = client.getCatalogDatacenters();
+	// System.out.println("Datacenters: " + response.getValue());
+	//
+	// // register new service
+	// NewService newService = new NewService();
+	// newService.setId("myapp_01");
+	// newService.setName("block-server/dynamic/14");
+	// newService.setTags(Arrays.asList("EU-West", "EU-East"));
+	// newService.setPort(8080);
+	// client.agentServiceRegister(newService);
+	//
+	// // register new service with associated health check
+	// newService = new NewService();
+	// newService.setId("myapp_02");
+	// newService.setTags(Collections.singletonList("EU-East"));
+	// newService.setName("block-server/dynamic/13");
+	// newService.setPort(8080);
+	//
+	// client.agentServiceRegister(newService);
+	//
+	// // query for healthy services based on name (returns myapp_01 and
+	// myapp_02 if healthy)
+	// HealthServicesRequest request = HealthServicesRequest.newBuilder()
+	// .setPassing(true)
+	// .setQueryParams(QueryParams.DEFAULT)
+	// .build();
+	// Response<List<HealthService>> healthyServices =
+	// client.getHealthServices("block-server/dynamic/14", request);
+	// System.out.println(healthyServices.getValue().size());
 
-	public static void main(String[] args) throws IOException {
-		Files.write(Paths.get("C:\\Websites\\123.png"), new byte[1024]);
-	}
+	// String s="value 2";
+	// System.out.println(s.replaceAll("([a-z]+[ ])([\\d])", "$2"));
+
+	// }
 }

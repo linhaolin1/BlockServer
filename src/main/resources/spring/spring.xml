@@ -55,4 +55,9 @@
 	</bean>
 	<import resource="spring-http.xml" />
 	<import resource="spring-database.xml" />
+	
+	<bean id="consul" class="com.ecwid.consul.v1.ConsulClient">
+		<constructor-arg index="0" value="${consul.host}" />
+	</bean>
+	
 </beans>

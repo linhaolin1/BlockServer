@@ -10,8 +10,10 @@
 		<result column="fieldName" property="fieldName" />
 	</resultMap>
 
-	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteParamEntity" useGeneratedKeys="true" keyProperty="id">
-		insert into ExecuteParam (id,execute,pluginMethodParam,param,fieldName,type)
+	<insert id="addToTemp" parameterType="com.lin.entity.ExecuteParamEntity"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into ExecuteParam
+		(id,execute,pluginMethodParam,param,fieldName,type)
 		values(
 		#{id},#{execute},#{pluginMethodParam}, #{param},#{fieldName},#{type})
 	</insert>
@@ -28,7 +30,8 @@
 
 	<select id="findMethodReturnParamFromTempByExecute" resultMap="executeParam"
 		parameterType="int">
-		select * from ExecuteParam where execute= #{execute} limit 1
+		select * from ExecuteParam where execute= #{execute}
+		limit 1
 	</select>
 
 
@@ -45,6 +48,15 @@
 		select *
 		from ExecuteParam where id= #{id}
 	</select>
+
+	<select id="findFromTempByProcess" resultMap="executeParam"
+		parameterType="int">
+		select *
+		from ExecuteParam pa where exists( select * from
+		Execute e,Block b,Process p where pa.execute=e.id and e.block=b.id and
+		b.process=p.id and p.id=#{processId} )
+	</select>
+
 
 	<update id="updateToTemp" parameterType="com.lin.entity.ExecuteParamEntity">
 		update ExecuteParam set

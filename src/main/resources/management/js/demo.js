@@ -363,7 +363,7 @@ jsPlumb.ready(function () {
 				continue;
 			
 			var obj={};
-			obj.name=paramsInput[i].name;
+			obj.name=encodeURIComponent(paramsInput[i].name);
 			obj.value=encodeURIComponent(paramsInput[i].value);
 			obj.fieldName=$(paramsInput[i]).attr("fieldName");
 			obj.type=$(paramsInput[i]).attr("args-type");
@@ -552,6 +552,7 @@ jsPlumb.ready(function () {
 		$.ajax({
 			url:"/block-server/getExecuteVariableParams",
 			method:"post",
+			dataType:"json",
 			data:JSON.stringify(json),
 			beforeSend:function(){
 				 showProgress();
@@ -693,6 +694,9 @@ jsPlumb.ready(function () {
 				
 				for(var i=0;i<data.next.length;i++){
 					var tempConnection=instance.connect({uuids: ["Window"+data.next[i].block+"BottomCenter", "Window"+data.next[i].value+"TopCenter"],editable: true});
+					console.log(data.next[i].block)
+					console.log(data.next[i].value)
+					
 					tempConnection.getOverlay("label").setLabel(""+data.next[i].name+"");
 					tempConnection.next=data.next[i].id;
 					tempConnection.condition=data.next[i].condition;
@@ -1239,7 +1243,7 @@ jsPlumb.ready(function () {
                 }
             } ],
             [ "Label", {
-                location: 0.5,
+                location: 0.3,
                 id: "label",
                 cssClass: "aLabel",
                 events:{

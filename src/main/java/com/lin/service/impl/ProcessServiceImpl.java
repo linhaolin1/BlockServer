@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lin.NettyServer;
+import com.lin.actions.ProcessAction;
 import com.lin.constants.BlockConstant;
 import com.lin.dao.BlockDao;
 import com.lin.dao.DynamicRequestDao;
 import com.lin.dao.ExecuteDao;
+import com.lin.dao.ExecuteParamDao;
 import com.lin.dao.NextDao;
 import com.lin.dao.NextRequirementDao;
 import com.lin.dao.ProcessArgumentComplexDao;
@@ -25,18 +30,25 @@ import com.lin.dao.ProcessArgumentDao;
 import com.lin.dao.ProcessDao;
 import com.lin.entity.BlockEntity;
 import com.lin.entity.ExecuteEntity;
+import com.lin.entity.ExecuteParamEntity;
 import com.lin.entity.NextEntity;
 import com.lin.entity.NextRequirementEntity;
 import com.lin.entity.ProcessArgumentComplexEntity;
 import com.lin.entity.ProcessArgumentEntity;
 import com.lin.entity.ProcessEntity;
+import com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec;
+import com.lin.nettyserver.http.codec.unspecified.UnspecifiedReq;
+import com.lin.nettyserver.http.config.IoMapperConfig;
+import com.lin.nettyserver.http.config.UrlMapperConfig;
 import com.lin.request.req.CheckAllBlockAvailableReq;
 import com.lin.request.req.CheckAllLineAvailableReq;
 import com.lin.request.req.CheckAllParamAvailableReq;
 import com.lin.request.req.DeleteProcessArgsReq;
 import com.lin.request.req.DeleteProcessReq;
+import com.lin.request.req.ExportProcessReq;
 import com.lin.request.req.GetProcessListReq;
 import com.lin.request.req.GetProcessReq;
+import com.lin.request.req.ImportProcessReq;
 import com.lin.request.req.ProcessReq;
 import com.lin.request.req.SaveProcessArgsReq;
 import com.lin.request.req.SaveProcessReq;
@@ -46,8 +58,10 @@ import com.lin.request.resp.CheckAllLineAvailableResp;
 import com.lin.request.resp.CheckAllParamAvailableResp;
 import com.lin.request.resp.DeleteProcessArgsResp;
 import com.lin.request.resp.DeleteProcessResp;
+import com.lin.request.resp.ExportProcessResp;
 import com.lin.request.resp.GetProcessListResp;
 import com.lin.request.resp.GetProcessResp;
+import com.lin.request.resp.ImportProcessResp;
 import com.lin.request.resp.ProcessResp;
 import com.lin.request.resp.SaveProcessArgsResp;
 import com.lin.request.resp.SaveProcessResp;
@@ -56,11 +70,12 @@ import com.lin.service.ExecuteService;
 import com.lin.service.ProcessService;
 import com.lin.service.SequenceService;
 import com.lin.util.DataloaderInterface;
+import com.lin.util.EntityListUtil;
 import com.lin.util.JsDataLoader;
 import com.lin.util.ParamUtil;
 
 @Service
-@Transactional(rollbackFor=Exception.class)
+@Transactional(rollbackFor = Exception.class)
 public class ProcessServiceImpl implements ProcessService {
 
 	@Value("${jsPath}")
@@ -88,6 +103,9 @@ public class ProcessServiceImpl implements ProcessService {
 	ProcessArgumentDao processArgumentDao;
 
 	@Autowired
+	ExecuteParamDao executeParamDao;
+
+	@Autowired
 	ProcessArgumentComplexDao processArgumentComplexDao;
 
 	@Autowired
@@ -96,29 +114,37 @@ public class ProcessServiceImpl implements ProcessService {
 	@Autowired
 	SequenceService sequenceService;
 
-	public void executeProcess(ProcessEntity process, DataloaderInterface loader, Long sequenceId) throws InvocationTargetException {
+	public void executeProcess(ProcessEntity process, DataloaderInterface loader, Long sequenceId)
+			throws InvocationTargetException {
 
-		BlockEntity block = blockDao.findFromTempById(process.getStartBlock());
+		ExportProcessReq req = new ExportProcessReq();
+		ExportProcessResp resp = new ExportProcessResp();
+		req.setId(process.getId());
+		exportProcess(req, resp);
+
+		BlockEntity block = (BlockEntity) EntityListUtil.findFromList(resp.getBlocks(), "id", process.getStartBlock());
 
 		if (block == null) {
 			System.out.println("startblock is null, id=" + process.getStartBlock());
 		}
 		Integer i = 0;
-		while ((i = executeService.executeBlock(block, loader, sequenceId)) != -1) {
-			block = blockDao.findFromTempById(i);
+		while ((i = executeService.executeBlock(block, loader, sequenceId, resp)) != -1) {
+			block = (BlockEntity) EntityListUtil.findFromList(resp.getBlocks(), "id", i);
 		}
 	}
 
 	@Override
-	
 	public void executeProcess(ProcessReq req, ProcessResp resp, Long sequenceId) throws InvocationTargetException {
 		// TODO Auto-generated method stub
-
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, 0L,
+				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+		
 		// DataloaderInterface loader = new JsDataLoader(jsPath);
 		DataloaderInterface loader = new JsDataLoader(jsPath);
 		ProcessEntity process = processDao.findFromTempById(req.getProcessId());
 
 		loader.putAll(req.getObject());
+		loader.put(BlockConstant.PROPERITY_KEY_IP, req.getProperty(BlockConstant.PROPERITY_KEY_IP));
 		executeProcess(process, loader, sequenceId);
 		HashMap map = new HashMap();
 
@@ -134,6 +160,13 @@ public class ProcessServiceImpl implements ProcessService {
 				}
 			}
 		}
+		if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)))) {
+			resp.setMsg(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)));
+		}
+		if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT)))) {
+			resp.setResult(Integer.parseInt(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT))));
+		}
+
 		loader.destory();
 		resp.setResponse(map);
 	}
@@ -167,8 +200,12 @@ public class ProcessServiceImpl implements ProcessService {
 
 	@Override
 	public void saveNewProcess(SaveProcessReq req, SaveProcessResp resp) {
+		resp.setProcess(saveNewProcess(req.getName()));
+	}
+
+	private ProcessEntity saveNewProcess(String name) {
 		ProcessEntity process = new ProcessEntity();
-		process.setName(req.getName());
+		process.setName(name);
 		processDao.addToTemp(process);
 
 		BlockEntity startBlock = new BlockEntity();
@@ -188,9 +225,35 @@ public class ProcessServiceImpl implements ProcessService {
 		process.setEndBlock(endBlock.getId());
 		processDao.updateToTemp(process);
 
-		dynamicRequestDao.addNewDynamicRequest("/block-server/dynamic/" + process.getId(), process.getId());
+		addNewDynamicRequest("/block-server/dynamic/" + process.getId(), process.getId());
 
-		resp.setProcess(process);
+		return process;
+	}
+
+	private void addNewDynamicRequest(String url, Integer id) {
+
+		dynamicRequestDao.addNewDynamicRequest("/block-server/dynamic/" + id, id);
+
+		IoMapperConfig ioConfig = NettyServer.context.getBean(IoMapperConfig.class);
+		UrlMapperConfig urlConfig = NettyServer.context.getBean(UrlMapperConfig.class);
+		UnspecifiedDecodec decoder = NettyServer.context.getBean(UnspecifiedDecodec.class);
+		urlConfig.addDecodecMapper("/block-server/dynamic/" + id, decoder);
+		urlConfig.addClassMapper("/block-server/dynamic/" + id, UnspecifiedReq.class);
+		ioConfig.addClass(UnspecifiedReq.class, NettyServer.context.getBean(ProcessAction.class));
+
+		try {
+			ioConfig.addMethod(UnspecifiedReq.class, NettyServer.context.getBean(ProcessAction.class).getClass()
+					.getDeclaredMethod("dynamicRequest", UnspecifiedReq.class));
+		} catch (BeansException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -514,5 +577,118 @@ public class ProcessServiceImpl implements ProcessService {
 
 	public Integer getProcessByUrl(String url) {
 		return dynamicRequestDao.findByUrl(url).getProcessId();
+	}
+
+	@Override
+	public void exportProcess(ExportProcessReq req, ExportProcessResp resp) {
+		// TODO Auto-generated method stub
+		System.out.println(req.getId());
+		resp.setProcess(processDao.findFromTempById(req.getId()));
+		resp.setBlocks(blockDao.findFromTempByProcess(req.getId()));
+
+		List<JSONObject> array = new ArrayList<JSONObject>();
+		List<NextEntity> nextList = nextDao.findFromTempByProcess(req.getId());
+		resp.setNext(nextList);
+		resp.setNextRequirement(nextRequirementDao.findFromTempByProcess(req.getId()));
+
+		List<ExecuteEntity> executes = executeDao.findFromTempByProcess(req.getId());
+		resp.setExecute(executes);
+
+		resp.setExecuteParam(executeParamDao.findFromTempByProcess(req.getId()));
+
+		List<ProcessArgumentEntity> args = processArgumentDao.findFromTempByProcess(req.getId());
+		resp.setArgs(args);
+
+		List<ProcessArgumentComplexEntity> complex = processArgumentComplexDao.findByProcess(req.getId());
+		resp.setComplex(complex);
+
+	}
+
+	@Override
+	public void importProcess(ImportProcessReq req, ImportProcessResp resp) {
+		// TODO Auto-generated method stub
+		ProcessEntity process = new ProcessEntity();
+		process.setName(req.getProcess().getName());
+		process.setIntro(req.getProcess().getIntro());
+		processDao.addToTemp(process);
+
+		for (BlockEntity b : req.getBlocks()) {
+			int originId = b.getId();
+			b.setId(0);
+			b.setProcess(process.getId());
+			blockDao.addToTemp(b);
+			if (req.getProcess().getStartBlock() == originId) {
+				process.setStartBlock(b.getId());
+			} else if (req.getProcess().getEndBlock() == originId) {
+				process.setEndBlock(b.getId());
+			}
+			for (ExecuteEntity e : req.getExecute()) {
+				if (e.getBlock() == originId) {
+					e.setBlock(b.getId());
+				}
+			}
+
+			for (NextEntity ne : req.getNext()) {
+				if (ne.getBlock() == originId) {
+					ne.setBlock(b.getId());
+				}
+				if (ne.getValue() == originId) {
+					ne.setValue(b.getId());
+				}
+			}
+
+		}
+		processDao.updateToTemp(process);
+
+		for (ProcessArgumentEntity pae : req.getArgs()) {
+			int originId = pae.getId();
+			pae.setProcess(process.getId());
+			pae.setId(0);
+			processArgumentDao.addToTemp(pae);
+			for (ProcessArgumentComplexEntity pace : req.getComplex()) {
+				if (pace.getArgument() == originId) {
+					pace.setArgument(pae.getId());
+				}
+			}
+
+		}
+
+		for (ProcessArgumentComplexEntity pace : req.getComplex()) {
+			pace.setId(0);
+			processArgumentComplexDao.save(pace);
+		}
+
+		for (ExecuteEntity e : req.getExecute()) {
+			int originId = e.getId();
+			e.setId(0);
+			executeDao.addToTemp(e);
+			for (ExecuteParamEntity ep : req.getExecuteParam()) {
+				if (ep.getExecute() == originId) {
+					ep.setExecute(e.getId());
+				}
+			}
+		}
+
+		for (ExecuteParamEntity ep : req.getExecuteParam()) {
+			ep.setId(0);
+			executeParamDao.addToTemp(ep);
+		}
+
+		for (NextEntity ne : req.getNext()) {
+			int originId = ne.getId();
+			ne.setId(0);
+			nextDao.addToTemp(ne);
+			for (NextRequirementEntity nr : req.getNextRequirement()) {
+				if (nr.getNext() == originId) {
+					nr.setNext(ne.getId());
+				}
+			}
+		}
+
+		for (NextRequirementEntity nr : req.getNextRequirement()) {
+			nr.setId(0);
+			nextRequirementDao.addToTemp(nr);
+		}
+
 	}
 }

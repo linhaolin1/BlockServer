@@ -55,4 +55,9 @@ public class ExecuteParamDao extends BaseDao {
 		return template.selectList("executeParamDao.findFromTempByExecute", execute);
 	}
 
+	public List<ExecuteParamEntity> findFromTempByProcess(Integer processId) {
+		// TODO Auto-generated method stub
+		return template.selectList("executeParamDao.findFromTempByProcess", processId);
+	}
+
 }

@@ -284,7 +284,7 @@
 		formData.append('file', $('#exampleInputFile')[0].files[0]);
 		$.ajax({
 			//url: 'http://localhost:8088/fileupload',
-			url: 'http://www.b-bricks.cn:8088/fileupload',
+			url: 'http://106.52.110.245:8088/fileupload',
 			type: 'POST',
 			cache: false,
 			dataType:"json",
@@ -293,7 +293,7 @@
 			contentType: false,
 			success:function(data){
 				//showProgress();
-				sendExcelLoad(tableName,data.groupName,data.path);
+				sendExcelLoad(tableName,data.url.substr(0,data.url.indexOf("/")),data.url.substr(data.url.indexOf("/")+1)) ;
 			}
 		})
 	})

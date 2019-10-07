@@ -13,13 +13,7 @@ public class XmlDecodec implements HttpDecodec<String> {
 
 	public <T> T decode(String body, Class<T> clazz) {
 		Map<String, Object> params = UrlUtil.parseXmlParam(body);
-		try {
-			return (T) JSON.parseObject(URLDecoder.decode(JSON.toJSONString(params), "utf-8"), clazz);
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return null;
-		}
+		return (T) JSON.parseObject(JSON.toJSONString(params), clazz);
 
 	}
 

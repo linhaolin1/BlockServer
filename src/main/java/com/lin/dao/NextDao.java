@@ -31,7 +31,7 @@ public class NextDao extends BaseDao {
 		return template.selectList("nextDao.findFromTempByProcess", processId);
 	}
 
-	public void deleteFromTempByBlockAndValue(int block, int value, int id) {
+	public void deleteFromTempByBlockAndValue(Integer block, Integer value, Integer id) {
 		HashMap map = new HashMap();
 		map.put("block", block);
 		map.put("value", value);

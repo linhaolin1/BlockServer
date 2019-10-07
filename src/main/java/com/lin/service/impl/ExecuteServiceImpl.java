@@ -3,6 +3,7 @@ package com.lin.service.impl;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -12,6 +13,7 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +25,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
-import com.jolbox.bonecp.BoneCPDataSource;
 import com.lin.NettyServer;
 import com.lin.block.ProcessArgument;
 import com.lin.block.ProcessArgumentComplex;
@@ -79,13 +85,16 @@ import com.lin.request.req.GetExecuteVariableParamsReq;
 import com.lin.request.req.SaveExecuteParamReq;
 import com.lin.request.req.SaveExecuteReq;
 import com.lin.request.resp.DelExecuteResp;
+import com.lin.request.resp.ExportProcessResp;
 import com.lin.request.resp.GetExecuteParamsResp;
 import com.lin.request.resp.GetExecuteVariableParamsResp;
+import com.lin.request.resp.GetProcessResp;
 import com.lin.request.resp.SaveExecuteParamResp;
 import com.lin.request.resp.SaveExecuteResp;
 import com.lin.service.ExecuteService;
 import com.lin.service.SequenceService;
 import com.lin.util.DataloaderInterface;
+import com.lin.util.EntityListUtil;
 import com.lin.util.FileManager;
 import com.lin.util.ParamUtil;
 
@@ -138,6 +147,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 	private static ConcurrentHashMap<String, URLClassLoader> classLoaderResourceList = new ConcurrentHashMap<String, URLClassLoader>();
 	private static ConcurrentHashMap<Integer, DruidDataSource> dataSourceResourceList = new ConcurrentHashMap<Integer, DruidDataSource>();
 	private static ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>> processResourceList = new ConcurrentHashMap<Integer, CopyOnWriteArrayList<Object>>();
+	private static ConcurrentHashMap<Integer, GenericObjectPool<AbstractPlugin>> pluginMap = new ConcurrentHashMap<Integer, GenericObjectPool<AbstractPlugin>>();
 
 	@Override
 	public void saveExecuteParam(SaveExecuteParamReq req, SaveExecuteParamResp resp) {
@@ -148,8 +158,13 @@ public class ExecuteServiceImpl implements ExecuteService {
 			JSONObject ob = req.getParams().getJSONObject(i);
 			ExecuteParamEntity entity = new ExecuteParamEntity();
 			entity.setExecute(req.getExecuteId());
-			entity.setPluginMethodParam(ob.getString("name"));
-			entity.setParam(ob.getString("value"));
+			try {
+				entity.setPluginMethodParam(URLDecoder.decode(ob.getString("name"), "utf-8"));
+				entity.setParam(URLDecoder.decode(ob.getString("value"), "utf-8"));
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			entity.setFieldName(ob.getString("fieldName"));
 			entity.setType(ob.getInteger("type"));
 			executeParamDao.addToTemp(entity);
@@ -189,6 +204,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 		if (!(classObject instanceof AbstractVariableParamPlugin)) {
 			resp.setMsg("class is not AbstractVariableParamPlugin");
 			resp.setResult(Result.ERROR_SYSTEM);
+			
+			if (pluginMap.containsKey(plugin.getId())) {
+				pluginMap.get(plugin.getId()).returnObject((AbstractPlugin) classObject);
+			}
 			return;
 		}
 
@@ -206,6 +225,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 		} catch (IllegalArgumentException | SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if (pluginMap.containsKey(plugin.getId())) {
+				pluginMap.get(plugin.getId()).returnObject((AbstractPlugin) classObject);
+			}
 		}
 
 	}
@@ -230,6 +253,11 @@ public class ExecuteServiceImpl implements ExecuteService {
 		} catch (IllegalArgumentException | NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if (pluginMap.containsKey(plugin.getId())) {
+				pluginMap.get(plugin.getId()).returnObject((AbstractPlugin) classObject);
+			}
+
 		}
 
 		resp.setMethod(method);
@@ -256,23 +284,24 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	}
 
-	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId)
+	public Integer executeBlock(BlockEntity block, DataloaderInterface loader, Long sequenceId, ExportProcessResp resp)
 			throws InvocationTargetException {
 
-		execute(block, loader, sequenceId, block.getProcess());
+		execute(block, loader, sequenceId, block.getProcess(), resp);
 		Long time = System.currentTimeMillis();
-		Integer i = next(loader, block);
+		Integer i = next(loader, block, resp);
+
 		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_PROCESS_NEXT, sequenceId, System.currentTimeMillis() - time,
-				block.getProcess(), null, null, null);
+				block.getProcess(), null, null, "from block=" + block.getId() + "next block=" + i);
 
 		return i;
 	}
 
-	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId)
-			throws InvocationTargetException {
+	private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, int processId,
+			ExportProcessResp resp) throws InvocationTargetException {
 		// TODO Auto-generated method stub
 		Long time = System.currentTimeMillis();
-		List<ExecuteEntity> executes = executeDao.findFromTempByBlock(block.getId());
+		List<ExecuteEntity> executes = EntityListUtil.findListFromList(resp.getExecute(), "block", block.getId());
 		sequenceService.save("load execute", sequenceId, System.currentTimeMillis() - time, processId, null, null,
 				null);
 
@@ -280,41 +309,66 @@ public class ExecuteServiceImpl implements ExecuteService {
 			time = System.currentTimeMillis();
 			PluginMethodEntity method = pluginMethodDao.findById(e.getMethod());
 			PluginEntity plugin = pluginDao.findById(method.getPlugin());
-			List<ExecuteParamEntity> exeParams = executeParamDao.findMethodParamFromTempByExecute(e.getId());
-			ExecuteParamEntity returnParam = executeParamDao.findMethodReturnParamFromTempByExecute(e.getId());
+			List<ExecuteParamEntity> exeParams = EntityListUtil.findListFromList(resp.getExecuteParam(), "execute",
+					e.getId());
+
 			sequenceService.save("load exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
 					e.getBlock(), e.getId(), null);
 			time = System.currentTimeMillis();
-			Execute ee = new Execute(plugin, method, exeParams, returnParam, e, sequenceId, block.getId(), processId,
+
+			Execute ee = new Execute(plugin, method, exeParams, e, sequenceId, block.getId(), processId,
 					getClassInstanceForSequence(e, plugin, sequenceId, processId));
 			sequenceService.save("init exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
 					e.getBlock(), e.getId(), null);
 			time = System.currentTimeMillis();
+
 			ee.execute(loader);
+
 			sequenceService.save("execute exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
 					e.getBlock(), e.getId(), null);
 		}
 	}
 
-	private Integer next(DataloaderInterface loader, BlockEntity block) {
+	private Integer next(DataloaderInterface loader, BlockEntity block, ExportProcessResp resp) {
 
-		List<NextEntity> nexts = nextDao.findFromTempByBlock(block.getId());
+		List<NextEntity> nexts = EntityListUtil.findListFromList(resp.getNext(), "block", block.getId());
 		for (NextEntity n : nexts) {
-			if (isOk(loader, n)) {
+			if (isOk(loader, n, resp)) {
 				return n.getValue();
 			}
 		}
 		return -1;
 	}
 
-	private boolean isOk(DataloaderInterface loader, NextEntity next) {
-		List<NextRequirementEntity> requirements = nextRequirementDao.findFromTempByNext(next.getId());
+	private boolean isOk(DataloaderInterface loader, NextEntity next, ExportProcessResp resp) {
+		List<NextRequirementEntity> requirements = EntityListUtil.findListFromList(resp.getNextRequirement(), "next",
+				next.getId());
 
 		for (NextRequirementEntity r : requirements) {
 			if (!ParamUtil.isOK(loader, r))
 				return false;
 		}
 		return true;
+	}
+
+	public GenericObjectPool<AbstractPlugin> generatePool(Class clz) {
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+		config.setMaxTotal(50);// 整个池最大值
+		config.setMaxIdle(8);// 最大空闲
+		config.setMinIdle(0);// 最小空闲
+		config.setMaxWaitMillis(2000);// 最大等待时间，-1表示一直等
+		config.setBlockWhenExhausted(true);// 当对象池没有空闲对象时，新的获取对象的请求是否阻塞。true阻塞。默认值是true
+		config.setTestOnBorrow(false);// 在从对象池获取对象时是否检测对象有效，true是；默认值是false
+		config.setTestOnReturn(false);// 在向对象池中归还对象时是否检测对象有效，true是，默认值是false
+		config.setTestWhileIdle(false);// 在检测空闲对象线程检测到对象不需要移除时，是否检测对象的有效性。true是，默认值是false
+		config.setMinEvictableIdleTimeMillis(10 * 60000L); // 可发呆的时间,10mins
+		config.setTestWhileIdle(false); // 发呆过长移除的时候是否test一下先
+
+		PluginFactory pf = new PluginFactory();
+		pf.clz = clz;
+
+		GenericObjectPool<AbstractPlugin> pool = new GenericObjectPool<AbstractPlugin>(pf, config);
+		return pool;
 	}
 
 	public AbstractPlugin getClassInstance(ExecuteEntity execute, PluginEntity plugin) {
@@ -349,13 +403,18 @@ public class ExecuteServiceImpl implements ExecuteService {
 				}
 				Class clz = classLoader.loadClass(plugin.getClassName());
 				clz.getDeclaredMethods();
+				if (!pluginMap.containsKey(plugin.getId())) {
+					pluginMap.put(plugin.getId(), generatePool(clz));
+				}
 
-				AbstractPlugin ob = null;
-				ob = (AbstractPlugin) clz.newInstance();
+				AbstractPlugin ob = pluginMap.get(plugin.getId()).borrowObject();
 
 				instance = ob;
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
 					| MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -409,13 +468,18 @@ public class ExecuteServiceImpl implements ExecuteService {
 				}
 				Class clz = classLoader.loadClass(plugin.getClassName());
 				clz.getDeclaredMethods();
+				if (!pluginMap.containsKey(plugin.getId())) {
+					pluginMap.put(plugin.getId(), generatePool(clz));
+				}
 
-				AbstractPlugin ob = null;
-				ob = (AbstractPlugin) clz.newInstance();
+				AbstractPlugin ob = pluginMap.get(plugin.getId()).borrowObject();
 
 				instance = ob;
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
 					| MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -469,12 +533,12 @@ public class ExecuteServiceImpl implements ExecuteService {
 			}
 			DruidDataSource cpSource = null;
 
-			if (dataSourceResourceList.containsKey(pe.getId())) {
-				cpSource = dataSourceResourceList.get(pe.getId());
+			if (dataSourceResourceList.containsKey(pe.getDataSource())) {
+				cpSource = dataSourceResourceList.get(pe.getDataSource());
 			}
 
 			if (cpSource == null)
-				for (Object processResource : processResourceList.get(pe.getDataSource())) {
+				for (Object processResource : processResourceList.get(pe.getId())) {
 					if (processResource instanceof DruidDataSource) {
 						cpSource = (DruidDataSource) processResource;
 						break;
@@ -547,12 +611,40 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 	}
 
+	public class PluginFactory extends BasePooledObjectFactory<AbstractPlugin> {
+
+		Class<AbstractPlugin> clz;
+
+		// 创建对象
+		@Override
+		public AbstractPlugin create() throws Exception {
+			return clz.newInstance();
+		}
+
+		// 包装对象
+		@Override
+		public PooledObject<AbstractPlugin> wrap(AbstractPlugin arg0) {
+			return new DefaultPooledObject<AbstractPlugin>(arg0);
+		}
+
+		// 在获取对象返回之前可以进行的操作
+		@Override
+		public void activateObject(PooledObject<AbstractPlugin> p) throws Exception {
+			super.activateObject(p);
+		}
+
+		// 在归还对象之前可以进行的操作
+		@Override
+		public void passivateObject(PooledObject<AbstractPlugin> p) throws Exception {
+			super.passivateObject(p);
+		}
+	}
+
 	private class Execute {
 
 		private PluginEntity plugin;
 		private PluginMethodEntity method;
 		private List<ExecuteParamEntity> exeParams;
-		private ExecuteParamEntity returnParam;
 		private ExecuteEntity execute;
 		private Long sequenceId;
 		private int blockId;
@@ -562,12 +654,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 		AbstractPlugin exe;
 
 		public Execute(PluginEntity plugin, PluginMethodEntity method, List<ExecuteParamEntity> exeParams,
-				ExecuteParamEntity returnParam, ExecuteEntity execute, Long sequenceId, int blockId, int processId,
-				AbstractPlugin exe) { // 从数据库读取
+				ExecuteEntity execute, Long sequenceId, int blockId, int processId, AbstractPlugin exe) { // 从数据库读取
 			this.plugin = plugin;
 			this.method = method;
 			this.exeParams = exeParams;
-			this.returnParam = returnParam;
 			this.execute = execute;
 			this.sequenceId = sequenceId;
 			this.blockId = blockId;
@@ -601,6 +691,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_LOADCLASS, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
 				time = System.currentTimeMillis();
+
 				Method m = null;
 				Method[] methods = exe.getClass().getDeclaredMethods();
 				for (Method me : methods) {
@@ -740,6 +831,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 			} catch (InstantiationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} finally {
+				if (pluginMap.containsKey(plugin.getId())) {
+					pluginMap.get(plugin.getId()).returnObject(exe);
+				}
 			}
 
 			return;

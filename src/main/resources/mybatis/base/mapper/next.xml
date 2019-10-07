@@ -42,7 +42,11 @@
 	</delete>
 	
 	<delete id="deleteFromTempByBlockAndValue">
-		delete from Next where block=#{block} and value=#{value} and id!=#{id}
+		delete from Next where block=#{block} and value=#{value} 
+		<if test="id !=null  ">
+			and id!=#{id}
+		</if>
+		
 	</delete>
 
 </mapper>

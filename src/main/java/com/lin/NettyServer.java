@@ -1,18 +1,24 @@
 package com.lin;
 
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.lin.util.FileManager;
+import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.lin.entity.BlockEntity;
 import com.lin.service.PluginService;
 
 public class NettyServer {
 	private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 	public static AbstractApplicationContext context;
 
-	public static void main(String[] args) throws InterruptedException, BeansException, ClassNotFoundException {
+	public static void main(String[] args) throws InterruptedException, BeansException, ClassNotFoundException, IOException, MyException {
 		context = new ClassPathXmlApplicationContext("spring/spring.xml");
 		context.registerShutdownHook();
 
@@ -30,8 +36,7 @@ public class NettyServer {
 		}).start();
 
 //		PluginService service = context.getBean(PluginService.class);
-//		service.savePlugin(
-//				"C:\\code\\exampleDatabaseController\\target\\exampleDatabaseController-1.0.jar", "示例数据库操作",
-//				"");
+//		service.savePlugin("D:\\Users\\lion\\workspace\\examplePayPlugin\\target\\examplePayPlugin-1.0.jar",
+//				"支付宝", "");
 	}
 }

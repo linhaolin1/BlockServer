@@ -17,15 +17,19 @@ import com.lin.request.req.CheckAllBlockAvailableReq;
 import com.lin.request.req.CheckAllLineAvailableReq;
 import com.lin.request.req.CheckAllParamAvailableReq;
 import com.lin.request.req.DeleteProcessArgsReq;
+import com.lin.request.req.ExportProcessReq;
 import com.lin.request.req.GetProcessListReq;
 import com.lin.request.req.GetProcessReq;
+import com.lin.request.req.ImportProcessReq;
 import com.lin.request.req.ProcessReq;
 import com.lin.request.req.SaveProcessArgsReq;
 import com.lin.request.req.SaveProcessReq;
 import com.lin.request.req.UpdateProcessReq;
 import com.lin.request.resp.DeleteProcessArgsResp;
+import com.lin.request.resp.ExportProcessResp;
 import com.lin.request.resp.GetProcessListResp;
 import com.lin.request.resp.GetProcessResp;
+import com.lin.request.resp.ImportProcessResp;
 import com.lin.request.resp.ProcessResp;
 import com.lin.request.resp.SaveProcessArgsResp;
 import com.lin.request.resp.SaveProcessResp;
@@ -53,10 +57,7 @@ public class ProcessAction {
 		Long time = System.currentTimeMillis();
 		ProcessResp resp = new ProcessResp();
 		try {
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
-					JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
-			
 			processService.executeProcess(req, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
 					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
@@ -77,8 +78,6 @@ public class ProcessAction {
 		Long time = System.currentTimeMillis();
 		ProcessResp resp = new ProcessResp();
 		try {
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time, req.getProcessId(), null, null,
-					JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
 			processService.executeProcess(req, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
@@ -97,14 +96,13 @@ public class ProcessAction {
 		// 寻找url匹配的process
 		ProcessReq process = new ProcessReq();
 		process.setObject(req.getObject());
+		process.setProperties(req.getProperties());
 		ProcessResp resp = new ProcessResp();
 		Long time = System.currentTimeMillis();
 		
 		try {
 			process.setProcessId(processService.getProcessByUrl(req.getUrl()));
 			Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_REQUEST, sequenceId, time,
-					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 			time=System.currentTimeMillis();
 			processService.executeProcess(process, resp, sequenceId);
 			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
@@ -231,6 +229,40 @@ public class ProcessAction {
 		}
 	}
 
+	@Subscribe
+	@RequestMapper(url = "/block-server/exportProcess", codecName = "blockKvDecodec", clazz = ExportProcessReq.class)
+	public void exportProcess(ExportProcessReq req) {
+		logger.debug("ExportProcessReq:{}", req);
+		ExportProcessResp resp = new ExportProcessResp();
+		try {
+			processService.exportProcess(req, resp);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.setResult(Result.ERROR_SYSTEM);
+			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
+		} finally {
+			ResponseUtil.response(req, JSON.toJSONString(resp));
+		}
+	}
+	
+	@Subscribe
+	@RequestMapper(url = "/block-server/importProcess", codecName = "blockJsonDecodec", clazz = ImportProcessReq.class)
+	public void importProcess(ImportProcessReq req) {
+		logger.debug("ImportProcessReq:{}", req);
+		ImportProcessResp resp = new ImportProcessResp();
+		try {
+			processService.importProcess(req, resp);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.setResult(Result.ERROR_SYSTEM);
+			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
+		} finally {
+			ResponseUtil.response(req, JSON.toJSONString(resp));
+		}
+	}
+
+	
+	
 	@Subscribe
 	@RequestMapper(url = "/block-server/checkAllParamAvailable", codecName = "blockKvDecodec", clazz = CheckAllParamAvailableReq.class)
 	public void checkAllParamAvailable(CheckAllParamAvailableReq req) {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.script.ScriptException;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.eclipsesource.v8.V8;
@@ -48,8 +51,22 @@ public class JsDataLoader implements DataloaderInterface {
 	public JsDataLoader(String filePath) {
 		if (engine != null)
 			return;
+		try {
+			engine = V8.createV8Runtime();
+		} catch (IllegalStateException stateException) {
+			Path path = Paths.get("" + System.currentTimeMillis());
+			System.out.println("path=" + path.toString());
+			if (!Files.exists(path)) {
+				try {
+					Files.createDirectories(path);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 
-		engine = V8.createV8Runtime();
+			engine = V8.createV8Runtime(null, path.toString());
+		}
 
 		String jsFileName = filePath; // 读取js文件
 
@@ -85,20 +102,24 @@ public class JsDataLoader implements DataloaderInterface {
 		// System.out.println(bl.parseText(pp));
 		// Pattern countPattern2 =
 		// Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z.]+\\)");
-		List ar = new ArrayList();
-		ar.add("1");
-		ar.add("2");
-		JsDataLoader dl = new JsDataLoader("e:\\test.js");
-		dl.put("账号", "123");
-		dl.put("时间", new Date().toString());
-		dl.put("array", ar);
-		String s = "{账号}{时间}";
-
-		System.out.println(dl.engine.get("账号"));
-		System.out.println(dl.get("账号"));
-		System.out.println(dl.get("账号"));
-
-		System.out.println(dl.parseValue(s));
+//		List ar = new ArrayList();
+//		ar.add("1");
+//		ar.add("2");
+//		JsDataLoader dl = new JsDataLoader("e:\\test.js");
+//		dl.put("账号", "123");
+//		dl.put("时间", new Date().toString());
+//		dl.put("array", ar);
+//		String s = "{账号}{时间}";
+//
+//		System.out.println(dl.engine.get("账号"));
+//		System.out.println(dl.get("账号"));
+//		System.out.println(dl.get("账号"));
+//
+//		System.out.println(dl.parseValue(s));
+//		System.out.println(dl.engine.executeScript("/^[1][3,4,5,7,8,9][0-9]{9}$/.test(18676347565)"));
+		
+		System.out.println(isNeedJs("{订单商品}[{商品序号}].BuyCount+HasRobNumber"));
+		
 		//
 		// System.out.println(dl.parseNormalValue("{notify_url}"));
 
@@ -146,7 +167,7 @@ public class JsDataLoader implements DataloaderInterface {
 				}
 			}
 		} else {
-			engine.executeScript(name + "=" + JSON.toJSONString(value));
+			engine.executeScript(name + "=" + JSON.toJSONStringWithDateFormat(value, "yyyy-MM-dd HH:mm:ss"));
 		}
 
 		keys.add(name);
@@ -161,6 +182,8 @@ public class JsDataLoader implements DataloaderInterface {
 	}
 
 	public Object get(String name) {
+		if(StringUtils.isBlank(name))
+			return "";
 		String type = (String) engine.executeScript("typeof(" + name + ")");
 		if (type.equals("object")) {
 			return engine.executeScript("JSON.stringify(" + name + ")");
@@ -381,7 +404,7 @@ public class JsDataLoader implements DataloaderInterface {
 			if (object instanceof String) {
 				sb.append(object);
 			} else {
-				sb.append(JSON.toJSONString(object));
+				sb.append(JSON.toJSONStringWithDateFormat(object, "yyyy-MM-dd HH:mm:ss"));
 			}
 		}
 
@@ -408,7 +431,7 @@ public class JsDataLoader implements DataloaderInterface {
 		return s;
 	}
 
-	private boolean isNeedJs(String pa) {
+	public static boolean isNeedJs(String pa) {
 		boolean fourFundamental = false;
 		if (pa.indexOf("+") > 0 || pa.indexOf("-") > 0 || pa.indexOf("*") > 0 || pa.indexOf("/") > 0) {
 			fourFundamental = true;
@@ -421,11 +444,14 @@ public class JsDataLoader implements DataloaderInterface {
 		}
 		return false;
 	}
-
+	
 	private String parseValueByJS(String pa) {
 
 		String s = "";
 		// TODO Auto-generated catch block
+		if(StringUtils.isBlank(pa)){
+			return "";
+		}
 		try {
 
 			String valueType = (String) engine.executeScript("typeof(" + pa + ")");

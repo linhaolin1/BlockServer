@@ -9,16 +9,31 @@
 		<result column="param2" property="param2" />
 	</resultMap>
 
-	<insert id="addToTemp" parameterType="com.lin.entity.NextRequirementEntity" useGeneratedKeys="true" keyProperty="id">
-		insert into NextRequirement (id,next,param1,method,param2) values(
+	<insert id="addToTemp" parameterType="com.lin.entity.NextRequirementEntity"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into NextRequirement
+		(id,next,param1,method,param2) values(
+		#{id},#{next},#{param1},
+		#{method},#{param2} )
+	</insert>
+
+	<insert id="addMapToTemp" parameterType="map" useGeneratedKeys="true"
+		keyProperty="id">
+		insert into NextRequirement (id,next,param1,method,param2)
+		values(
 		#{id},#{next},#{param1}, #{method},#{param2} )
 	</insert>
 
-	<insert id="addMapToTemp" parameterType="map" useGeneratedKeys="true" keyProperty="id">
-		insert into NextRequirement (id,next,param1,method,param2) values(
-		#{id},#{next},#{param1}, #{method},#{param2} )
-	</insert>
-	
+
+	<select id="findFromTempByProcess" resultMap="nextRequirement"
+		parameterType="int">
+		select *
+		from NextRequirement nr where exists ( select *
+		from Next n,Block b,Process p where nr.next=n.id and
+		n.block=b.id and
+		b.process=p.id and p.id=#{processId})
+	</select>
+
 
 	<select id="findFromTempByNext" resultMap="nextRequirement"
 		parameterType="int">
@@ -45,7 +60,8 @@
 	</delete>
 
 	<delete id="deleteByNextFromTemp" parameterType="int">
-		delete from NextRequirement where next= #{id}
+		delete from
+		NextRequirement where next= #{id}
 	</delete>
 
 </mapper>

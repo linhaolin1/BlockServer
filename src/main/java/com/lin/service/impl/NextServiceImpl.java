@@ -33,9 +33,10 @@ public class NextServiceImpl implements NextService {
 		if (req.getNextId() != null && req.getNextId() > 0) {
 			next = nextDao.findFromTempById(req.getNextId());
 			requirmentDao.deleteByNextFromTemp(req.getNextId());
-			nextDao.deleteFromTempByBlockAndValue(req.getFrom(), req.getTo(),req.getNextId());
+			nextDao.deleteFromTempByBlockAndValue(req.getFrom(), req.getTo(), req.getNextId());
+		} else {
+			nextDao.deleteFromTempByBlockAndValue(req.getFrom(), req.getTo(), null);
 		}
-		
 
 		next.setName(req.getName());
 		next.setBlock(req.getFrom());

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Executor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,9 @@ import com.lin.nettyserver.http.config.UrlMapperConfig;
 import com.lin.nettyserver.http.util.UrlUtil;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -61,12 +65,24 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
 		if ((msg instanceof HttpRequest)) {
 			HttpRequest request = this.httpRequest = (HttpRequest) msg;
+			
 			if (HttpHeaders.is100ContinueExpected(request)) {
 				send100Continue(ctx);
 			}
 			this.buf.setLength(0);
+			if (this.httpRequest != null && this.httpRequest.getMethod().equals(HttpMethod.OPTIONS)) {
+				FullHttpResponse response;
+				response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response.headers().set("Access-Control-Allow-Origin", "*");
+				response.headers().set("Access-Control-Allow-Headers", "*");
+				ChannelFuture channelFuture = ctx.channel().writeAndFlush(response);
+				ctx.channel().close();
+				return;
+			}
+
 			if ((!this.httpRequest.getMethod().equals(HttpMethod.POST))
 					&& (!this.httpRequest.getMethod().equals(HttpMethod.GET))) {
 				logger.error("unsupported request method:{} request.", request.getUri());
@@ -75,9 +91,12 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 			}
 		}
 		
+		
 		if ((msg instanceof HttpContent)) {
 
 			HttpContent httpContent = (HttpContent) msg;
+			
+
 
 			ByteBuf content = httpContent.content();
 			if (content.isReadable()) {
@@ -95,7 +114,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 				HttpDecodec decodec = this.config.getHttpDecodec(url);
 				Class clazz = this.config.getClass(url);
 				Object requestEvent = null;
-				
+
 				if (decodec instanceof KvDecodec) {
 					requestEvent = postKvDecode(decodec, queryStringDecoder, clazz);
 				} else if (decodec instanceof JsonDecodec) {
@@ -117,7 +136,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 
 							if (contentType.toLowerCase().indexOf("form") != -1) {
 								Map<String, List<String>> queryParams = kvParams(queryStringDecoder);
-								
+
 								Map<String, Object> objectMap = new HashMap<String, Object>();
 								for (Entry<String, List<String>> entry : queryParams.entrySet()) {
 
@@ -136,19 +155,25 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 								req.setObject(UrlUtil.parseXmlParam(URLDecoder.decode(this.buf.toString(), "utf-8")));
 							}
 						} catch (Exception e) {
-							
+
 							e.printStackTrace();
 						}
 					}
 
 				}
 
-				
 				if (null != requestEvent) {
 					if ((requestEvent instanceof Propertyable)) {
 						Propertyable propertyable = (Propertyable) requestEvent;
 						InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-						propertyable.setProperty(this.IP_KEY, remoteAddress.getAddress().getHostAddress());
+
+						if (!StringUtils.isBlank(httpRequest.headers().get("X-Forwarded-For"))) {
+							propertyable.setProperty(this.IP_KEY,
+									httpRequest.headers().get("X-Forwarded-For").split(",")[0].split(":")[0]);
+						} else {
+							propertyable.setProperty(this.IP_KEY, remoteAddress.getAddress().getHostAddress());
+						}
+
 						propertyable.setProperty(this.CHANNEL_KEY, ctx.channel());
 						propertyable.setProperty(this.KEEP_ALIVE_KEY,
 								Boolean.valueOf(HttpHeaders.isKeepAlive(this.httpRequest)));
@@ -196,6 +221,8 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
+					System.out.println(requestEvent.getClass().getName());
+					
 					ioConfig.getMethod(requestEvent.getClass()).invoke(ioConfig.getClass(requestEvent.getClass()),
 							requestEvent);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
