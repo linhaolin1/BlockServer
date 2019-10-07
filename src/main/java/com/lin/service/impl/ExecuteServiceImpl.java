@@ -317,7 +317,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 			time = System.currentTimeMillis();
 
 			Execute ee = new Execute(plugin, method, exeParams, e, sequenceId, block.getId(), processId,
-					getClassInstanceForSequence(e, plugin, sequenceId, processId));
+                    getClassInstance(e, plugin));
 			sequenceService.save("init exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
 					e.getBlock(), e.getId(), null);
 			time = System.currentTimeMillis();
@@ -436,75 +436,6 @@ public class ExecuteServiceImpl implements ExecuteService {
 		return instance;
 	}
 
-	public AbstractPlugin getClassInstanceForSequence(ExecuteEntity execute, PluginEntity plugin, Long sequenceId,
-			int processId) {
-		// TODO Auto-generated method stub
-		Long time = System.currentTimeMillis();
-		AbstractPlugin instance = null;
-		try {
-			if ((instance = (AbstractPlugin) NettyServer.context
-					.getBean(Class.forName(plugin.getClassName()))) != null) {
-				return instance;
-			}
-		} catch (Exception e) {
-
-		}
-
-		BlockEntity be = blockDao.findFromTempById(execute.getBlock());
-
-		if (instance == null) {
-			URLClassLoader classLoader = null;
-
-			if (classLoaderResourceList.containsKey(plugin.getClassName())) {
-				classLoader = classLoaderResourceList.get(plugin.getClassName());
-			}
-
-			try {
-				if (classLoader == null) {
-					File file = new File(plugin.getFileName());
-					URL url = file.toURI().toURL();
-					classLoader = new URLClassLoader(new URL[] { url });
-					classLoaderResourceList.put(plugin.getClassName(), classLoader);
-				}
-				Class clz = classLoader.loadClass(plugin.getClassName());
-				clz.getDeclaredMethods();
-				if (!pluginMap.containsKey(plugin.getId())) {
-					pluginMap.put(plugin.getId(), generatePool(clz));
-				}
-
-				AbstractPlugin ob = pluginMap.get(plugin.getId()).borrowObject();
-
-				instance = ob;
-			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
-					| MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		sequenceService.save("execute load class " + plugin.getClassName(), sequenceId,
-				System.currentTimeMillis() - time, processId, execute.getBlock(), execute.getId(), null);
-		time = System.currentTimeMillis();
-		Field[] fields = instance.getClass().getDeclaredFields();
-		for (Field f : fields) {
-			if (f.getAnnotation(InitParam.class) != null) {
-				f.setAccessible(true);
-				try {
-					f.set(instance, getBlockResource(be, f.getType()));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		sequenceService.save("execute load class resource" + plugin.getClassName(), sequenceId,
-				System.currentTimeMillis() - time, processId, execute.getBlock(), execute.getId(), null);
-
-		return instance;
-	}
 
 	private Object getBlockResource(BlockEntity block, Class clz) {
 
