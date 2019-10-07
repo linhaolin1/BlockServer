@@ -53,10 +53,10 @@
 http post请求 ： http://106.52.110.245/block-server/jsonRequest    
 json化body内容
 ```json
- {"processId":12,"object":{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}}
+ {"processId":"{地址栏中的流程id}","object":{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}}
 ```
 或者  
-http post请求 ： http://106.52.110.245/block-server/dynamic/12   
+http post请求 ： http://106.52.110.245/block-server/dynamic/{地址栏中的流程id}   
 json化body内容 :
 ```json
 {"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}
