@@ -89,7 +89,8 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 ### 案例
 流程设计展示：http://148.70.22.79/management/list.html
 
-业务模板展示：http://148.70.22.79/template/index.html
+业务模板展示：http://148.70.22.79/template/index.html , http://template-admin.pinhuomao.xyz/
+
 
 ## License
 MIT License
