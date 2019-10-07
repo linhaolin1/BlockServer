@@ -79,6 +79,14 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 流程设计展示：http://148.70.22.79/management/list.html  
 业务模板展示：http://148.70.22.79/template/index.html , http://template-admin.pinhuomao.xyz/
 
+### 使用
+1. 将demo/sql中的备份sql导入数据库
+2. 下载主项目源码 并修改src/main/resource/database.properties中的数据库连接
+3. 下载demo/plugin代码 并使用maven install打包生成jar
+4. 修改framework数据库 plugin表中的fileName位置（依据上一步生成的jar包位置修改）
+5. 启动主服务 src/main/java/com/lin/NettyServer.java
+6. 将并修改src/main/resource/management文件夹放入http容器，并配置将 /block-server 反向代理转发到Netty服务（默认8080端口）
+7. 访问management/list.html
 
 ## License
 MIT License
