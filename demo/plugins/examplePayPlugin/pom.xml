@@ -7,9 +7,9 @@
 	<name>examplePayPlugin</name>
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
-			<version>1.2.4</version>
+		  <groupId>com.alibaba</groupId>
+		  <artifactId>fastjson</artifactId>
+		  <version>[1.2.31,)</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -61,8 +61,6 @@
 			<groupId>com.lin</groupId>
 			<artifactId>blockSdk</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/blockSdk-0.0.1-SNAPSHOT.jar</systemPath>
 		</dependency>
 
 
