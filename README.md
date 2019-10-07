@@ -90,3 +90,8 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 流程设计展示：http://148.70.22.79/management/list.html
 
 业务模板展示：http://148.70.22.79/template/index.html
+
+## License
+MIT License
+
+Copyright (c) 2019 linhaolin1
