@@ -85,7 +85,7 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 3. 下载demo/plugin代码 并使用maven install打包生成jar
 4. 修改framework数据库 plugin表中的fileName位置（依据上一步生成的jar包位置修改）
 5. 启动主服务 src/main/java/com/lin/NettyServer.java
-6. 将并修改src/main/resource/management文件夹放入http容器，并配置将 /block-server 反向代理转发到Netty服务（默认8080端口）
+6. 将src/main/resource/management文件夹放入http容器，并配置将 /block-server 反向代理转发到Netty服务（默认8080端口）
 7. 访问management/list.html
 
 ## License
