@@ -28,16 +28,27 @@
 
 在调用业务流程时，将
 ```
-1.根据流程输入，从流程启动的参数里读取相应的输入内容，然后从流程预设好的流程启动块开始执行
-
-2.顺序执行完该功能块下所属的执行块之后，寻找起点为该功能块的条件线路，根据当前流程的参数检查符合条件的线路，然后找到线路所对应的下一个功能块并执行，
-
-3.重复第2部分，直到无法找到符合条件的下一个条件线路或没有以该功能块为起点的条件线路
-
+1.根据流程输入，从流程启动的参数里读取相应的输入内容，然后从流程预设好的流程启动块开始执行  
+2.顺序执行完该功能块下所属的执行块之后，寻找起点为该功能块的条件线路，根据当前流程的参数检查符合条件的线路，然后找到线路所对应的下一个功能块并执行，  
+3.重复第2部分，直到无法找到符合条件的下一个条件线路或没有以该功能块为起点的条件线路  
 4.根据流程输出参数，设置输出内容
 ```
 
 参考：[创建支付订单流程](http://106.52.110.245/management/flowchart.html?processId=12)
+
+
+####测试流程
+```
+1. 在[management/list.html](流程设计展示：http://148.70.22.79/management/list.html)中创建一个流程，并输入流程名，点击确定按钮
+2. 在流程输入参数中填写需要的参数名，在流程输出参数中填写需要输出的参数名
+3. 点击`新的流程分块` 输入名称，点击确定按钮，创建一个新的功能块
+4. 拖动新的功能块（新创建的功能块在该区域左上角）到需要的位置，点击新功能块中间的名称，点击下拉菜单中的`+`，选择添加执行块以及执行块所对应的技术组件
+5. 再次点击该功能块中间的名称，在下拉菜单中选择新添加的执行块，再右边工具栏中配置对应的输入输出参数
+	4.1 在输入中要使用引用的参数，用{name} 对应 name参数的值
+	4.2 要把输出的内容保存到参数中，直接写名称，比如输出中result,之后即可通过{result}获取该输出内容
+6. 从流程start的左/下/右方拖出条件线路 拉到新的功能块上方，配置该线路的名称与条件，可使用{name}获取流程中的参数值
+7. 通过http接口调用该接口 进行测试
+```
 
 调用方法：  
 http post请求 ： http://106.52.110.245/block-server/jsonRequest    
@@ -63,23 +74,20 @@ json化body内容 :
 （不建议使用中文参数名，参数可为空）
 
 
-
 ### 技术组件
 积木中的组件为配置了积木SDK的注解并打包后的jar包   
 sdk参考[blockSdk](https://github.com/linhaolin1/BlockServer/tree/master/sdk/blockSdk)  
 demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/demo/plugins)
 
-
-### 系统本身
-系统本身使用Netty+spring+mybatis完成基本内容  
-使用Netty的原因是请求url为dynamic时，需要根据请求头进行对应的格式参数解析
-
-
-### 案例
+## 案例
 流程设计展示：http://148.70.22.79/management/list.html  
 业务模板展示：http://148.70.22.79/template/index.html , http://template-admin.pinhuomao.xyz/
 
-### 使用
+## 系统本身
+系统本身使用Netty+spring+mybatis完成基本内容  
+使用Netty的原因是请求url为dynamic时，需要根据请求头进行对应的格式参数解析
+
+## 部署
 1. 将demo/sql中的备份sql导入数据库
 2. 下载主项目源码 并修改src/main/resource/database.properties中的数据库连接
 3. 下载demo/plugin代码 并使用maven install打包生成jar
@@ -87,6 +95,7 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 5. 启动主服务 src/main/java/com/lin/NettyServer.java
 6. 将src/main/resource/management文件夹放入http容器，并配置将 /block-server 反向代理转发到Netty服务（默认8080端口）
 7. 访问management/list.html
+
 
 ## License
 MIT License
