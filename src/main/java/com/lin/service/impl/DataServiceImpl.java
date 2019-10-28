@@ -5,7 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,8 +77,6 @@ import com.lin.util.EncryptUtil.PasswordType;
 import com.lin.util.FileManager;
 import com.lin.util.RedisManager;
 
-import redis.clients.jedis.Jedis;
-
 @Configuration("http.properties")
 @Service
 @Transactional
@@ -92,6 +93,8 @@ public class DataServiceImpl implements DataService {
 
 	@Value("${fdfs.http}")
 	String fdfsPath;
+
+	DateFormat foramt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
 	public void getAvailableDataTable(GetAvailableDataTableReq req, GetAvailableDataTableResp resp) {
@@ -662,7 +665,7 @@ public class DataServiceImpl implements DataService {
 				break;
 			case NUMERIC:
 				if (DateUtil.isCellDateFormatted(cell)) {
-					value = new ExcelDataValue(String.valueOf(cell.getDateCellValue()));
+					value = new ExcelDataValue(foramt.format((cell.getDateCellValue())));
 				} else {
 					value = new ExcelDataValue(String.valueOf(new BigDecimal(cell.getNumericCellValue())));
 				}
@@ -676,6 +679,14 @@ public class DataServiceImpl implements DataService {
 			if (value.strValue.equals("null")) {
 				value.strValue = "";
 			}
+			byte[] bs = value.strValue.getBytes();
+			for (byte b : bs) {
+				System.out.print(b);
+				System.out.print(" ");
+			}
+			System.out.println();
+			System.out.println(value.strValue);
+
 			return value;
 
 		} else {
@@ -694,20 +705,29 @@ public class DataServiceImpl implements DataService {
 				break;
 			case NUMERIC:
 				if (DateUtil.isCellDateFormatted(cell)) {
-					value = new ExcelDataValue(String.valueOf(cell.getDateCellValue()));
+					value = new ExcelDataValue(foramt.format(cell.getDateCellValue()));
 				} else {
-					value = new ExcelDataValue(String.valueOf(cell.getNumericCellValue()));
+					value = new ExcelDataValue(String.valueOf(new BigDecimal(cell.getNumericCellValue())));
 				}
 				break;
 			case BOOLEAN:
 				value = new ExcelDataValue(String.valueOf(cell.getBooleanCellValue()));
 				break;
+
 			default:
 				value = new ExcelDataValue("");
 			}
 			if (value.strValue.equals("null")) {
 				value.strValue = "";
 			}
+			byte[] bs = value.strValue.getBytes();
+			for (byte b : bs) {
+				System.out.print(b);
+				System.out.print(" ");
+			}
+			System.out.println();
+			System.out.println(value.strValue);
+
 			return value;
 
 		} else {
