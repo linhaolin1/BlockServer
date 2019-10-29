@@ -40,7 +40,7 @@ public class ResponseUtil {
 			response.headers().set("Access-Control-Allow-Origin", "*");
 			response.headers().set("Access-Control-Allow-Headers", "*");
 			if (keepAlive.booleanValue()) {
-				response.headers().set("Content-Length", Integer.valueOf(response.content().readableBytes()));
+				response.headers().set("Content-Length", Integer.valueOf(response.content().readableBytes()).toString());
 				response.headers().set("Connection", "keep-alive");
 			}
 			ChannelFuture channelFuture = channel.writeAndFlush(response);
@@ -69,7 +69,7 @@ public class ResponseUtil {
 		if (null != response) {
 			response.headers().set("Content-Type", "application/json; charset=UTF-8");
 			if (keepAlive.booleanValue()) {
-				response.headers().set("Content-Length", Integer.valueOf(response.content().readableBytes()));
+				response.headers().set("Content-Length", Integer.valueOf(response.content().readableBytes()).toString());
 
 				response.headers().set("Connection", "keep-alive");
 			}

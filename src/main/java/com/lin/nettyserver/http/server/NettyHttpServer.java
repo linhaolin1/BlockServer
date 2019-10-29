@@ -1,5 +1,17 @@
 package com.lin.nettyserver.http.server;
 
+import java.net.InetSocketAddress;
+
+import javax.annotation.Nonnull;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
+
+import com.lin.nettyserver.tcp.config.ServerSocketOptions;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -13,19 +25,7 @@ import io.netty.channel.socket.SocketChannelConfig;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LoggingHandler;
-
-import java.net.InetSocketAddress;
-
-import javax.annotation.Nonnull;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedResource;
-
-import com.lin.nettyserver.tcp.config.NamedDaemonThreadFactory;
-import com.lin.nettyserver.tcp.config.ServerSocketOptions;
+import io.netty.util.concurrent.DefaultExecutorServiceFactory;
 
 @ManagedResource(objectName = "com.lin.common:class=network,name=nettyHttpServer")
 public class NettyHttpServer {
@@ -51,8 +51,8 @@ public class NettyHttpServer {
 		int ioThreadCount = Integer.parseInt(System.getProperty("netty.tcp.ioThreadCount",
 				String.valueOf(Runtime.getRuntime().availableProcessors())));
 
-		this.selectorGroup = new NioEventLoopGroup(selectThreadCount, new NamedDaemonThreadFactory("netty-tcp-select"));
-		this.ioGroup = new NioEventLoopGroup(ioThreadCount, new NamedDaemonThreadFactory("netty-tcp-io"));
+		this.selectorGroup = new NioEventLoopGroup(selectThreadCount, new DefaultExecutorServiceFactory("netty-tcp-select"));
+		this.ioGroup = new NioEventLoopGroup(ioThreadCount, new DefaultExecutorServiceFactory("netty-tcp-io"));
 
 		this.listenAddress = listenAddress;
 	}

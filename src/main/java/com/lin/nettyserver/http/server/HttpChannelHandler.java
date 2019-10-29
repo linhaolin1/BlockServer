@@ -26,15 +26,15 @@ import com.lin.nettyserver.http.config.UrlMapperConfig;
 import com.lin.nettyserver.http.util.UrlUtil;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -69,11 +69,11 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 		if ((msg instanceof HttpRequest)) {
 			HttpRequest request = this.httpRequest = (HttpRequest) msg;
 			
-			if (HttpHeaders.is100ContinueExpected(request)) {
+			if (HttpHeaderUtil.is100ContinueExpected(request)) {
 				send100Continue(ctx);
 			}
 			this.buf.setLength(0);
-			if (this.httpRequest != null && this.httpRequest.getMethod().equals(HttpMethod.OPTIONS)) {
+			if (this.httpRequest != null && this.httpRequest.method().equals(HttpMethod.OPTIONS)) {
 				FullHttpResponse response;
 				response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 				response.headers().set("Access-Control-Allow-Origin", "*");
@@ -83,9 +83,9 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 
-			if ((!this.httpRequest.getMethod().equals(HttpMethod.POST))
-					&& (!this.httpRequest.getMethod().equals(HttpMethod.GET))) {
-				logger.error("unsupported request method:{} request.", request.getUri());
+			if ((!this.httpRequest.method().equals(HttpMethod.POST))
+					&& (!this.httpRequest.method().equals(HttpMethod.GET))) {
+				logger.error("unsupported request method:{} request.", request.uri());
 				ctx.channel().close();
 				return;
 			}
@@ -103,7 +103,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 				this.buf.append(content.toString(CharsetUtil.UTF_8));
 			}
 			if ((msg instanceof LastHttpContent)) {
-				QueryStringDecoder queryStringDecoder = new QueryStringDecoder(this.httpRequest.getUri());
+				QueryStringDecoder queryStringDecoder = new QueryStringDecoder(this.httpRequest.uri());
 				String url = queryStringDecoder.path();
 
 				if (!this.config.contains(url)) {
@@ -126,12 +126,12 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 					requestEvent = req;
 					req.setUrl(url);
 					Map<String, List<String>> params = null;
-					if (this.httpRequest.getMethod().equals(HttpMethod.GET)) {
+					if (this.httpRequest.method().equals(HttpMethod.GET)) {
 						params = queryStringDecoder.parameters();
 						req.setObject(params);
 					} else {
 						HttpHeaders headers = this.httpRequest.headers();
-						String contentType = headers.get(HttpHeaders.Names.CONTENT_TYPE);
+						String contentType = headers.get(HttpHeaderNames.CONTENT_TYPE).toString();
 						try {
 
 							if (contentType.toLowerCase().indexOf("form") != -1) {
@@ -169,14 +169,14 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 
 						if (!StringUtils.isBlank(httpRequest.headers().get("X-Forwarded-For"))) {
 							propertyable.setProperty(this.IP_KEY,
-									httpRequest.headers().get("X-Forwarded-For").split(",")[0].split(":")[0]);
+									httpRequest.headers().get("X-Forwarded-For").toString().split(",")[0].split(":")[0]);
 						} else {
 							propertyable.setProperty(this.IP_KEY, remoteAddress.getAddress().getHostAddress());
 						}
 
 						propertyable.setProperty(this.CHANNEL_KEY, ctx.channel());
 						propertyable.setProperty(this.KEEP_ALIVE_KEY,
-								Boolean.valueOf(HttpHeaders.isKeepAlive(this.httpRequest)));
+								Boolean.valueOf(HttpHeaderUtil.isKeepAlive(this.httpRequest)));
 						sendEvent(requestEvent);
 					}
 
@@ -197,7 +197,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 
 	private Map<String, List<String>> kvParams(QueryStringDecoder queryStringDecoder) {
 		Map<String, List<String>> params = null;
-		if (this.httpRequest.getMethod().equals(HttpMethod.POST)) {
+		if (this.httpRequest.method().equals(HttpMethod.POST)) {
 			params = UrlUtil.decodeParams(this.buf.toString(), CharsetUtil.UTF_8);
 
 			Map<String, List<String>> params1 = queryStringDecoder.parameters();
@@ -208,7 +208,7 @@ public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
 			} else {
 				params = params1;
 			}
-		} else if (this.httpRequest.getMethod().equals(HttpMethod.GET)) {
+		} else if (this.httpRequest.method().equals(HttpMethod.GET)) {
 			params = queryStringDecoder.parameters();
 		}
 
