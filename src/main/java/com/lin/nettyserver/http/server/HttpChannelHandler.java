@@ -28,8 +28,8 @@ import com.lin.nettyserver.http.util.UrlUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
@@ -45,7 +45,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
 
 @ChannelHandler.Sharable
-public class HttpChannelHandler extends ChannelInboundHandlerAdapter {
+public class HttpChannelHandler extends ChannelHandlerAdapter {
 	private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 	private UrlMapperConfig config;
 	private IoMapperConfig ioConfig;

@@ -1,0 +1,21 @@
+version: '3'
+services:
+  web:
+    build: block/
+    ports:
+    - "8080:8080"
+    volumes:
+    - .:/code
+    - logvolume01:/var/log
+    links:
+    - mariadb
+    - redis
+    - fileManager
+  mariadb:
+    image: docker.io/mariadb
+    ports:
+    - "3306:3306"
+  redis:
+    image: docker.io/redis
+    ports:
+    - "6379:6379"
