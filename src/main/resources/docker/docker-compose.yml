@@ -1,21 +1,37 @@
 version: '3'
 services:
-  web:
-    build: block/
+  block-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-    - "8080:8080"
+      - "8080:8080"
     volumes:
-    - .:/code
-    - logvolume01:/var/log
+      - ../jar/:/home/brick/
+      - ../plugins/:/home/brick/plugins/
+      - ../js/:/home/brick/js/
+    container_name: block-server
+    environment:
+      - LANG=C.UTF-8
+    working_dir: /home/brick
+    command: "java -jar -Dfile.encoding=UTF-8 blockServer-0.0.1-SNAPSHOT.jar"
     links:
-    - mariadb
-    - redis
-    - fileManager
+      - mariadb
+      - redis
   mariadb:
-    image: docker.io/mariadb
+    image: mariadb
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --lower_case_table_names=1
+    restart: always
+    volumes:
+      - ../sql/:/docker-entrypoint-initdb.d/
     ports:
-    - "3306:3306"
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=block-server
+      - MYSQL_USER=block
+      - MYSQL_PASSWORD=dev
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
   redis:
-    image: docker.io/redis
+    image: redis
     ports:
-    - "6379:6379"
+      - "6379:6379"

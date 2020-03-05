@@ -168,12 +168,6 @@
 			<version>1.2.57</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.3.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.10</version>
@@ -196,7 +190,7 @@
 		<dependency>
 			<groupId>org.csource</groupId>
 			<artifactId>fastdfs-client-java</artifactId>
-			<version>1.27-SNAPSHOT</version>
+			<version>1.29-SNAPSHOT</version>
 		</dependency>
 
 
