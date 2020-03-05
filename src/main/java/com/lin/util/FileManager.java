@@ -19,7 +19,7 @@ public class FileManager {
 			ClientGlobal.init(conf);
 
 			TrackerClient tracker = new TrackerClient();
-			TrackerServer trackerServer = tracker.getConnection();
+			TrackerServer trackerServer = tracker.getTrackerServer();
 			StorageServer storageServer = null;
 
 			storageClient = new StorageClient(trackerServer, storageServer);
