@@ -101,7 +101,13 @@ public class ProcessAction {
 		Long time = System.currentTimeMillis();
 		
 		try {
-			process.setProcessId(processService.getProcessByUrl(req.getUrl()));
+			process.setProcessId(processService.getProcessByUrl(req.getUrl().substring("/block-server/".length())));
+			if(process.getProcessId()==0){
+				resp.setResult(Result.NOT_AVAIL_URL);
+				resp.setMsg(Result.getMsg(Result.NOT_AVAIL_URL));
+				ResponseUtil.response(req, JSON.toJSONString(resp));
+				return;
+			}
 			Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
 			time=System.currentTimeMillis();
 			processService.executeProcess(process, resp, sequenceId);

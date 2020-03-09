@@ -3,9 +3,18 @@ package com.lin.entity;
 public class ProcessEntity extends AbstractEntity {
 	private String name;
 	private String intro;
+	private String url;
 	private Integer startBlock = 0;
 	private Integer endBlock = 0;
 	private Integer dataSource;
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
 	public Integer getDataSource() {
 		return dataSource;

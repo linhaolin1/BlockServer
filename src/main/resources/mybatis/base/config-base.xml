@@ -29,7 +29,7 @@
 		<mapper resource="mybatis/base/mapper/processArgument.xml" />
 		<mapper resource="mybatis/base/mapper/processArgumentComplex.xml" />
 		<mapper resource="mybatis/base/mapper/htmlParam.xml" />
-		<mapper resource="mybatis/base/mapper/dynamicRequest.xml" />
+		<!--<mapper resource="mybatis/base/mapper/dynamicRequest.xml" />-->
 		<mapper resource="mybatis/base/mapper/sequenceRecord.xml" />
 	</mappers>
 </configuration>

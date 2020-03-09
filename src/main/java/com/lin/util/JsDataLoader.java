@@ -13,8 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.script.ScriptException;
 
@@ -69,22 +71,33 @@ public class JsDataLoader implements DataloaderInterface {
 		}
 
 		String jsFileName = filePath; // 读取js文件
-
+		Stream<Path> paths= null;
 		try {
-			List<String> array = Files.readAllLines(Paths.get(jsFileName));
-			StringBuilder sb = new StringBuilder();
-			for (String s : array) {
-				sb.append(s + "\n");
-			}
-			engine.executeScript(sb.toString());
-			engine.executeScript("a=1");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			paths = Files.list(Paths.get(jsFileName));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		paths.forEach(new Consumer<Path>(){
+			@Override
+			public void accept(Path path) {
+				try {
+					List<String> array = Files.readAllLines(path);
+					StringBuilder sb = new StringBuilder();
+					for (String s : array) {
+						sb.append(s + "\n");
+					}
+					engine.executeScript(sb.toString());
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+
 
 	}
 

@@ -40,10 +40,9 @@
 	<bean id="urlMapperConfig" class="com.lin.nettyserver.http.config.UrlMapperConfig" />
 	<bean id="ioMapperConfig" class="com.lin.nettyserver.http.config.IoMapperConfig" />
 
-	<bean id="kvDecodec" class="com.lin.nettyserver.http.codec.kv.KvDecodec" />
-	<bean id="jsonDecodec" class="com.lin.nettyserver.http.codec.json.JsonDecodec" />
 	<bean id="blockJsonDecodec" class="com.lin.nettyserver.http.codec.json.JsonDecodec" />
 	<bean id="blockKvDecodec" class="com.lin.nettyserver.http.codec.kv.KvDecodec" />
+	<bean id="blockMutipartDecodec" class="com.lin.nettyserver.http.codec.mutipart.MutipartDecodec" />
 	<bean id="blockUnspecficDecodec" class="com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec" />
 	<bean id="blockXmlDecodec" class="com.lin.nettyserver.http.codec.xml.XmlDecodec" />
 

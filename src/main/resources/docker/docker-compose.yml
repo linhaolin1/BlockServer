@@ -15,6 +15,8 @@ services:
       - LANG=C.UTF-8
     working_dir: /home/brick
     command: "java -jar -Dfile.encoding=UTF-8 blockServer-0.0.1-SNAPSHOT.jar"
+    depends_on:
+      - mariadb
     links:
       - mariadb
       - redis
@@ -27,7 +29,7 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_DATABASE=block-server
+      - MYSQL_DATABASE=bricks
       - MYSQL_USER=block
       - MYSQL_PASSWORD=dev
       - MYSQL_RANDOM_ROOT_PASSWORD=true
@@ -35,3 +37,10 @@ services:
     image: redis
     ports:
       - "6379:6379"
+  nginx:
+    image: nginx
+    volumes:
+      - ../nginx/:/etc/nginx/conf.d/
+      - ../management:/usr/share/nginx/html:ro
+    ports:
+      - "8090:80"

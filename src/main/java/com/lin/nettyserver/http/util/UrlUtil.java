@@ -123,7 +123,7 @@ public class UrlUtil {
 		}
 	}
 
-	public static <T> T instanceObject(Map<String, List<String>> params, Class<T> className, boolean defaultInstance) {
+	public static <T> T instanceObject(Map<String, List<Object>> params, Class<T> className, boolean defaultInstance) {
 		if (null == params) {
 			if (defaultInstance) {
 				try {
@@ -148,7 +148,7 @@ public class UrlUtil {
 					String annotationKey = getKey(field);
 					field.setAccessible(true);
 					if (null != annotationKey) {
-						List<String> values = (List) params.get(annotationKey);
+						List<Object> values = (List) params.get(annotationKey);
 						if ((null != values) && (values.size() > 0)) {
 							if (List.class.isAssignableFrom(field.getType())) {
 								List list = new ArrayList();
@@ -156,16 +156,18 @@ public class UrlUtil {
 								if ((fc instanceof ParameterizedType)) {
 									ParameterizedType pt = (ParameterizedType) fc;
 									Class genericClass = (Class) pt.getActualTypeArguments()[0];
-									for (String value : values) {
+									for (Object value : values) {
 										Object o = ((StringConverter) StringConverters.getCommonFactory()
-												.transform(genericClass)).transform(value);
+												.transform(genericClass)).transform(String.valueOf(value));
 										list.add(o);
 									}
 									field.set(t, list);
 								}
-							} else {
+							} else if (values.get(0).getClass().isArray()){
+								field.set(t, values.get(0));
+							}else {
 								Object value = ((StringConverter) StringConverters.getCommonFactory()
-										.transform(field.getType())).transform(values.get(0));
+										.transform(field.getType())).transform(String.valueOf(values.get(0)));
 								field.set(t, value);
 							}
 						}

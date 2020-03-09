@@ -616,10 +616,11 @@ jsPlumb.ready(function () {
 	
 	var updateProcess=function(){
 		var json={};
-		json.name=$(".propertiesmain input").val();
+		json.name=$(".propertiesmain input.process-name").val();
+		json.url=$(".propertiesmain input.process-url").val();
 		json.intro=$("textarea.process-intro").val();
 		json.processId=getParamValue("processId");
-		
+
 		/**
 		json.inArgs=[];
 		json.outArgs=[];
@@ -685,8 +686,9 @@ jsPlumb.ready(function () {
 				
 				startBlock=data.process.startBlock;
 				endBlock=data.process.endBlock;
-				
-				$(".propertiesmain input").val(data.process.name);
+
+				$(".propertiesmain input.process-name").val(data.process.name);
+				$(".propertiesmain input.process-url").val(data.process.url);
 				$("textarea.process-intro").val(data.process.intro);
 				for(var i=0;i<data.blocks.length;i++){
 					addBlock(data.blocks[i].id,data.blocks[i].name,data.blocks[i].positionX,data.blocks[i].positionY);

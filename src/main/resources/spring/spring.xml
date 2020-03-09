@@ -40,9 +40,6 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-	
-	
-	
 
 	<bean id="fileManager" class="com.lin.util.FileManager">
 		<constructor-arg index="0" value="${fdfs.conf}" />

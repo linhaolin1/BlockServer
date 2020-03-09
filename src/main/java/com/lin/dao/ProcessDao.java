@@ -1,10 +1,11 @@
 package com.lin.dao;
 
-import java.util.List;
-
+import com.lin.entity.ProcessEntity;
 import org.springframework.stereotype.Repository;
 
-import com.lin.entity.ProcessEntity;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ProcessDao extends BaseDao {
@@ -36,6 +37,12 @@ public class ProcessDao extends BaseDao {
 
 	public void test() {
 
+	}
+
+	public ProcessEntity findByUrl(String url) {
+		Map<String, Object> queryMap = new HashMap();
+		queryMap.put("url", url);
+		return template.selectOne("processDao.findByUrl", queryMap);
 	}
 
 	public List<ProcessEntity> findAll() {

@@ -1,71 +1,18 @@
 package com.lin.service.impl;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lin.NettyServer;
 import com.lin.actions.ProcessAction;
 import com.lin.constants.BlockConstant;
-import com.lin.dao.BlockDao;
-import com.lin.dao.DynamicRequestDao;
-import com.lin.dao.ExecuteDao;
-import com.lin.dao.ExecuteParamDao;
-import com.lin.dao.NextDao;
-import com.lin.dao.NextRequirementDao;
-import com.lin.dao.ProcessArgumentComplexDao;
-import com.lin.dao.ProcessArgumentDao;
-import com.lin.dao.ProcessDao;
-import com.lin.entity.BlockEntity;
-import com.lin.entity.ExecuteEntity;
-import com.lin.entity.ExecuteParamEntity;
-import com.lin.entity.NextEntity;
-import com.lin.entity.NextRequirementEntity;
-import com.lin.entity.ProcessArgumentComplexEntity;
-import com.lin.entity.ProcessArgumentEntity;
-import com.lin.entity.ProcessEntity;
+import com.lin.dao.*;
+import com.lin.entity.*;
 import com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec;
 import com.lin.nettyserver.http.codec.unspecified.UnspecifiedReq;
 import com.lin.nettyserver.http.config.IoMapperConfig;
 import com.lin.nettyserver.http.config.UrlMapperConfig;
-import com.lin.request.req.CheckAllBlockAvailableReq;
-import com.lin.request.req.CheckAllLineAvailableReq;
-import com.lin.request.req.CheckAllParamAvailableReq;
-import com.lin.request.req.DeleteProcessArgsReq;
-import com.lin.request.req.DeleteProcessReq;
-import com.lin.request.req.ExportProcessReq;
-import com.lin.request.req.GetProcessListReq;
-import com.lin.request.req.GetProcessReq;
-import com.lin.request.req.ImportProcessReq;
-import com.lin.request.req.ProcessReq;
-import com.lin.request.req.SaveProcessArgsReq;
-import com.lin.request.req.SaveProcessReq;
-import com.lin.request.req.UpdateProcessReq;
-import com.lin.request.resp.CheckAllBlockAvailableResp;
-import com.lin.request.resp.CheckAllLineAvailableResp;
-import com.lin.request.resp.CheckAllParamAvailableResp;
-import com.lin.request.resp.DeleteProcessArgsResp;
-import com.lin.request.resp.DeleteProcessResp;
-import com.lin.request.resp.ExportProcessResp;
-import com.lin.request.resp.GetProcessListResp;
-import com.lin.request.resp.GetProcessResp;
-import com.lin.request.resp.ImportProcessResp;
-import com.lin.request.resp.ProcessResp;
-import com.lin.request.resp.SaveProcessArgsResp;
-import com.lin.request.resp.SaveProcessResp;
-import com.lin.request.resp.UpdateProcessResp;
+import com.lin.request.req.*;
+import com.lin.request.resp.*;
 import com.lin.service.ExecuteService;
 import com.lin.service.ProcessService;
 import com.lin.service.SequenceService;
@@ -73,6 +20,15 @@ import com.lin.util.DataloaderInterface;
 import com.lin.util.EntityListUtil;
 import com.lin.util.JsDataLoader;
 import com.lin.util.ParamUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -108,8 +64,8 @@ public class ProcessServiceImpl implements ProcessService {
 	@Autowired
 	ProcessArgumentComplexDao processArgumentComplexDao;
 
-	@Autowired
-	DynamicRequestDao dynamicRequestDao;
+//	@Autowired
+//	DynamicRequestDao dynamicRequestDao;
 
 	@Autowired
 	SequenceService sequenceService;
@@ -225,20 +181,22 @@ public class ProcessServiceImpl implements ProcessService {
 		process.setEndBlock(endBlock.getId());
 		processDao.updateToTemp(process);
 
-		addNewDynamicRequest("/block-server/dynamic/" + process.getId(), process.getId());
-
+//		addNewDynamicRequest("/block-server/dynamic/" + process.getId(), process.getId());
 		return process;
 	}
 
 	private void addNewDynamicRequest(String url, Integer id) {
+//		dynamicRequestDao.deleteByProcess(id);
+		if(url.equals("/block-server/"))
+			return;
 
-		dynamicRequestDao.addNewDynamicRequest("/block-server/dynamic/" + id, id);
+//		dynamicRequestDao.addNewDynamicRequest(url, id);
 
 		IoMapperConfig ioConfig = NettyServer.context.getBean(IoMapperConfig.class);
 		UrlMapperConfig urlConfig = NettyServer.context.getBean(UrlMapperConfig.class);
 		UnspecifiedDecodec decoder = NettyServer.context.getBean(UnspecifiedDecodec.class);
-		urlConfig.addDecodecMapper("/block-server/dynamic/" + id, decoder);
-		urlConfig.addClassMapper("/block-server/dynamic/" + id, UnspecifiedReq.class);
+		urlConfig.addDecodecMapper(url, decoder);
+		urlConfig.addClassMapper(url, UnspecifiedReq.class);
 		ioConfig.addClass(UnspecifiedReq.class, NettyServer.context.getBean(ProcessAction.class));
 
 		try {
@@ -267,7 +225,9 @@ public class ProcessServiceImpl implements ProcessService {
 		ProcessEntity pe = processDao.findFromTempById(req.getProcessId());
 		pe.setName(req.getName());
 		pe.setIntro(req.getIntro());
+		pe.setUrl(req.getUrl());
 		processDao.updateToTemp(pe);
+		addNewDynamicRequest("/block-server/" + req.getUrl(), req.getProcessId());
 
 		// processArgumentDao.deleteNotExistArgs(req.getProcessId(),
 		// req.getInArgs(), req.getOutArgs());
@@ -576,7 +536,12 @@ public class ProcessServiceImpl implements ProcessService {
 	}
 
 	public Integer getProcessByUrl(String url) {
-		return dynamicRequestDao.findByUrl(url).getProcessId();
+		ProcessEntity p=processDao.findByUrl(url);
+		if (p!=null){
+			return p.getId();
+		}else{
+			return 0;
+		}
 	}
 
 	@Override

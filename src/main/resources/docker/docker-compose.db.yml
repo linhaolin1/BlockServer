@@ -1,0 +1,15 @@
+version: '3'
+services:
+  mariadb:
+    image: mariadb
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --lower_case_table_names=1
+    restart: always
+    volumes:
+      - ../sql/:/docker-entrypoint-initdb.d/
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=bricks
+      - MYSQL_USER=block
+      - MYSQL_PASSWORD=dev
+      - MYSQL_RANDOM_ROOT_PASSWORD=true

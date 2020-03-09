@@ -8,13 +8,14 @@
 		<result column="startBlock" property="startBlock" />
 		<result column="endBlock" property="endBlock" />
 		<result column="dataSource" property="dataSource" />
+		<result column="url" property="url" />
+
 	</resultMap>
 
 	<insert id="addToTemp" parameterType="com.lin.entity.ProcessEntity" useGeneratedKeys="true" keyProperty="id">
-		
 		insert into Process
-		(id,name,startBlock,endBlock,intro,dataSource)
-		values(#{id},#{name},#{startBlock},#{endBlock},#{intro},#{dataSource})
+		(id,name,startBlock,endBlock,intro,dataSource,url)
+		values(#{id},#{name},#{startBlock},#{endBlock},#{intro},#{dataSource},#{url})
 	</insert>
 
 	<select id="findFromTempById" resultMap="process" parameterType="int">
@@ -24,7 +25,7 @@
 
 	<update id="updateToTemp" parameterType="com.lin.entity.ProcessEntity">
 		update Process set
-		name=#{name},startBlock=#{startBlock},endBlock=#{endBlock},intro=#{intro},dataSource=#{dataSource}
+		name=#{name},startBlock=#{startBlock},endBlock=#{endBlock},intro=#{intro},dataSource=#{dataSource},url=#{url}
 		where
 		id=#{id}
 	</update>
@@ -32,6 +33,11 @@
 	<select id="findAll" resultMap="process" >
 	    select * from Process
 	</select>
+
+	<select id="findByUrl" resultMap="process" >
+	    select * from Process where url=#{url} limit 1
+	</select>
+
 
 	<delete id="deleteFromTemp">
 		delete from Process where id= #{id}

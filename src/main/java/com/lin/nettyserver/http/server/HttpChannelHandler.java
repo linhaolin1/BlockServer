@@ -1,5 +1,29 @@
 package com.lin.nettyserver.http.server;
 
+import com.alibaba.fastjson.JSON;
+import com.lin.nettyserver.http.bean.Propertyable;
+import com.lin.nettyserver.http.codec.HttpDecodec;
+import com.lin.nettyserver.http.codec.json.JsonDecodec;
+import com.lin.nettyserver.http.codec.kv.KvDecodec;
+import com.lin.nettyserver.http.codec.mutipart.MutipartDecodec;
+import com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec;
+import com.lin.nettyserver.http.codec.unspecified.UnspecifiedReq;
+import com.lin.nettyserver.http.codec.xml.XmlDecodec;
+import com.lin.nettyserver.http.config.IoMapperConfig;
+import com.lin.nettyserver.http.config.UrlMapperConfig;
+import com.lin.nettyserver.http.util.UrlUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.util.CharsetUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
@@ -8,41 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Executor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.fastjson.JSON;
-import com.lin.nettyserver.http.bean.Propertyable;
-import com.lin.nettyserver.http.codec.HttpDecodec;
-import com.lin.nettyserver.http.codec.json.JsonDecodec;
-import com.lin.nettyserver.http.codec.kv.KvDecodec;
-import com.lin.nettyserver.http.codec.unspecified.UnspecifiedDecodec;
-import com.lin.nettyserver.http.codec.unspecified.UnspecifiedReq;
-import com.lin.nettyserver.http.codec.xml.XmlDecodec;
-import com.lin.nettyserver.http.config.IoMapperConfig;
-import com.lin.nettyserver.http.config.UrlMapperConfig;
-import com.lin.nettyserver.http.util.UrlUtil;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.CharsetUtil;
 
 @ChannelHandler.Sharable
 public class HttpChannelHandler extends ChannelHandlerAdapter {
@@ -55,6 +44,7 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 	private String CHANNEL_KEY = "channel";
 	private String KEEP_ALIVE_KEY = "keepAlive";
 	private final StringBuilder buf = new StringBuilder();
+	private HttpPostRequestDecoder mutiDecoder;
 	private HttpRequest httpRequest;
 
 	public HttpChannelHandler(IoMapperConfig ioConfig, UrlMapperConfig config, Executor excutorService) {
@@ -72,6 +62,7 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 			if (HttpHeaderUtil.is100ContinueExpected(request)) {
 				send100Continue(ctx);
 			}
+			this.mutiDecoder=new HttpPostRequestDecoder(request);
 			this.buf.setLength(0);
 			if (this.httpRequest != null && this.httpRequest.method().equals(HttpMethod.OPTIONS)) {
 				FullHttpResponse response;
@@ -95,13 +86,13 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 		if ((msg instanceof HttpContent)) {
 
 			HttpContent httpContent = (HttpContent) msg;
-			
-
 
 			ByteBuf content = httpContent.content();
 			if (content.isReadable()) {
 				this.buf.append(content.toString(CharsetUtil.UTF_8));
+				mutiDecoder.offer(httpContent);
 			}
+			content.release();
 			if ((msg instanceof LastHttpContent)) {
 				QueryStringDecoder queryStringDecoder = new QueryStringDecoder(this.httpRequest.uri());
 				String url = queryStringDecoder.path();
@@ -115,13 +106,18 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 				Class clazz = this.config.getClass(url);
 				Object requestEvent = null;
 
+				System.out.println("decode name ="+decodec.getClass().getName());
+
 				if (decodec instanceof KvDecodec) {
 					requestEvent = postKvDecode(decodec, queryStringDecoder, clazz);
-				} else if (decodec instanceof JsonDecodec) {
+				} else if (decodec instanceof JsonDecodec||decodec instanceof XmlDecodec) {
+					System.out.println("======== ");
+					System.out.println(this.buf.toString());
+
 					requestEvent = decodec.decode(this.buf.toString(), clazz);
-				} else if (decodec instanceof XmlDecodec) {
-					requestEvent = decodec.decode(this.buf.toString(), clazz);
-				} else if (decodec instanceof UnspecifiedDecodec) {
+				} else if (decodec instanceof MutipartDecodec) {
+					requestEvent = decodec.decode(mutiDecoder, clazz);
+				}else if (decodec instanceof UnspecifiedDecodec) {
 					UnspecifiedReq req = new UnspecifiedReq();
 					requestEvent = req;
 					req.setUrl(url);
@@ -133,7 +129,6 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 						HttpHeaders headers = this.httpRequest.headers();
 						String contentType = headers.get(HttpHeaderNames.CONTENT_TYPE).toString();
 						try {
-
 							if (contentType.toLowerCase().indexOf("form") != -1) {
 								Map<String, List<String>> queryParams = kvParams(queryStringDecoder);
 
@@ -159,7 +154,6 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 							e.printStackTrace();
 						}
 					}
-
 				}
 
 				if (null != requestEvent) {
