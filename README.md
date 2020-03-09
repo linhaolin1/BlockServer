@@ -34,11 +34,11 @@
 4.根据流程输出参数，设置输出内容
 ```
 
-参考：[创建支付订单流程](http://106.52.110.245/management/flowchart.html?processId=12)
+参考：[创建支付订单流程](http://10.227.14.161:8090/flowchart.html?processId=12)
 
 
 ####测试流程
-1. 在[management/list.html](http://148.70.22.79/management/list.html)中创建一个流程，并输入流程名，点击确定按钮
+1. 在[management/list.html](http://10.227.14.161:8090/list.html)中创建一个流程，并输入流程名，点击确定按钮
 2. 在流程输入参数中填写需要的参数名，在流程输出参数中填写需要输出的参数名
 3. 点击`新的流程分块` 输入名称，点击确定按钮，创建一个新的功能块
 4. 拖动新的功能块（新创建的功能块在该区域左上角）到需要的位置，点击新功能块中间的名称，点击下拉菜单中的`+`，选择添加执行块以及执行块所对应的技术组件
@@ -50,37 +50,21 @@
 
 
 调用方法：  
-http post请求 ： http://106.52.110.245/block-server/jsonRequest    
+http post请求 ： http://10.227.14.161:8090/block-server/jsonRequest    
 json化body内容
 ```json
  {"processId":"{地址栏中的流程id}","object":{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}}
 ```
-或者  
-http post请求 ： http://106.52.110.245/block-server/dynamic/{地址栏中的流程id}   
-json化body内容 :
-```json
-{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}
-```
-或者 xml化body内容
-```xml
-<xml>
-	<货物表></货物表>
-	<用户token></用户token>
-	<名称></名称>
-	...
-</xml> 
-```
-（不建议使用中文参数名，参数可为空）
+
 
 
 ### 技术组件
 积木中的组件为配置了积木SDK的注解并打包后的jar包   
 sdk参考[blockSdk](https://github.com/linhaolin1/BlockServer/tree/master/sdk/blockSdk)  
-demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/demo/plugins)
+demo组件参考[plugins](https://ee.byted.org/madeira/repo/ei/experiment.block-server/-/blob/demo/plugins/readme.md)
 
 ## 案例
-流程设计展示：http://148.70.22.79/management/list.html  
-业务模板展示：http://148.70.22.79/template/index.html , http://template-admin.pinhuomao.xyz/
+流程设计展示：http://10.227.14.161:8090/list.html
 
 ## 系统本身
 系统本身使用Netty+spring+mybatis完成基本内容  
@@ -94,9 +78,3 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 5. 启动主服务 src/main/java/com/lin/NettyServer.java
 6. 将src/main/resource/management文件夹放入http容器，并配置将 /block-server 反向代理转发到Netty服务（默认8080端口）
 7. 访问management/list.html
-
-
-## License
-MIT License
-
-Copyright (c) 2019 linhaolin1
