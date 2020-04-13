@@ -1,6 +1,8 @@
 package com.lin.nettyserver.http.server;
 
 import com.alibaba.fastjson.JSON;
+import com.lin.NettyServer;
+import com.lin.constants.BlockConstant;
 import com.lin.nettyserver.http.bean.Propertyable;
 import com.lin.nettyserver.http.codec.HttpDecodec;
 import com.lin.nettyserver.http.codec.json.JsonDecodec;
@@ -12,6 +14,7 @@ import com.lin.nettyserver.http.codec.xml.XmlDecodec;
 import com.lin.nettyserver.http.config.IoMapperConfig;
 import com.lin.nettyserver.http.config.UrlMapperConfig;
 import com.lin.nettyserver.http.util.UrlUtil;
+import com.lin.service.SequenceService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
@@ -55,10 +58,12 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 	}
 
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		SequenceService sequenceService= NettyServer.context.getBean(SequenceService.class);
+
 
 		if ((msg instanceof HttpRequest)) {
 			HttpRequest request = this.httpRequest = (HttpRequest) msg;
-			
+
 			if (HttpHeaderUtil.is100ContinueExpected(request)) {
 				send100Continue(ctx);
 			}
@@ -81,9 +86,10 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 				return;
 			}
 		}
-		
-		
+
+
 		if ((msg instanceof HttpContent)) {
+			Long time = System.currentTimeMillis();
 
 			HttpContent httpContent = (HttpContent) msg;
 
@@ -156,6 +162,10 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 					}
 				}
 
+				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_DECODEMSG, 0L, System.currentTimeMillis() - time,
+						0, null, null, JSON.toJSONString(requestEvent));
+				time = System.currentTimeMillis();
+
 				if (null != requestEvent) {
 					if ((requestEvent instanceof Propertyable)) {
 						Propertyable propertyable = (Propertyable) requestEvent;
@@ -178,6 +188,8 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 				} else {
 					logger.warn("decodec params:{} to clazz:{} is null...", this.buf, clazz);
 				}
+				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_SENDEVENT, 0L, System.currentTimeMillis() - time,
+						0, null, null, JSON.toJSONString(requestEvent));
 			}
 		}
 	}
@@ -215,8 +227,6 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					System.out.println(requestEvent.getClass().getName());
-					
 					ioConfig.getMethod(requestEvent.getClass()).invoke(ioConfig.getClass(requestEvent.getClass()),
 							requestEvent);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

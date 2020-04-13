@@ -29,6 +29,13 @@ function count(val){
 	}
 }
 
+function add(val1,val2){
+	if(parseInt(val1)!=NaN&&parseInt(val2)!=NaN){
+		return parseInt(val1)+parseInt(val2);
+	}
+	return val1+val2;
+}
+
 function sum(val,param){
 	if(val[param])
 	

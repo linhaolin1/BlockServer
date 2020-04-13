@@ -53,53 +53,51 @@ public class ProcessAction {
 	@RequestMapper(url = "/block-server/kvRequest", codecName = "blockKvDecodec", clazz = ProcessReq.class)
 	public void kvRequest(ProcessReq req) {
 		logger.info("BlockReq:{}", req);
-		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
 		Long time = System.currentTimeMillis();
+
 		ProcessResp resp = new ProcessResp();
 		try {
-			time=System.currentTimeMillis();
-			processService.executeProcess(req, resp, sequenceId);
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
-					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-			time=System.currentTimeMillis();
+			processService.executeProcess(req, resp, 1L);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
 		ResponseUtil.response(req, JSON.toJSONString(resp));
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, 1L, System.currentTimeMillis() - time,
+				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
 	@RequestMapper(url = "/block-server/jsonRequest", codecName = "blockJsonDecodec", clazz = ProcessReq.class)
 	public void jsonRequest(ProcessReq req) {
 		logger.info("BlockReq:{}", req);
-		Long sequenceId = sequenceService.genpProcessSequence(req.getProcessId());
 		Long time = System.currentTimeMillis();
+
 		ProcessResp resp = new ProcessResp();
 		try {
-			time=System.currentTimeMillis();
-			processService.executeProcess(req, resp, sequenceId);
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
-					req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-			time=System.currentTimeMillis();
+			processService.executeProcess(req, resp, 1L);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
 		ResponseUtil.response(req, JSON.toJSONString(resp));
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, 1L, System.currentTimeMillis() - time,
+				req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe
 	public void dynamicRequest(UnspecifiedReq req) {
 		// 寻找url匹配的process
+		Long time = System.currentTimeMillis();
 		ProcessReq process = new ProcessReq();
 		process.setObject(req.getObject());
 		process.setProperties(req.getProperties());
 		ProcessResp resp = new ProcessResp();
-		Long time = System.currentTimeMillis();
-		
+
 		try {
 			process.setProcessId(processService.getProcessByUrl(req.getUrl().substring("/block-server/".length())));
 			if(process.getProcessId()==0){
@@ -108,18 +106,18 @@ public class ProcessAction {
 				ResponseUtil.response(req, JSON.toJSONString(resp));
 				return;
 			}
-			Long sequenceId = sequenceService.genpProcessSequence(processService.getProcessByUrl(req.getUrl()));
-			time=System.currentTimeMillis();
-			processService.executeProcess(process, resp, sequenceId);
-			sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, sequenceId, System.currentTimeMillis() - time,
-					processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
-			time=System.currentTimeMillis();
+			processService.executeProcess(process, resp, 1L);
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setResult(Result.ERROR_SYSTEM);
 			resp.setMsg(Result.getMsg(Result.ERROR_SYSTEM));
 		}
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED, 1L, System.currentTimeMillis() - time,
+				processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
+		time = System.currentTimeMillis();
 		ResponseUtil.response(req, JSON.toJSONString(resp));
+		sequenceService.save(BlockConstant.PROCESS_SEQUENCE_HANDLED+"-SEND", 1L, System.currentTimeMillis() - time,
+				processService.getProcessByUrl(req.getUrl()), null, null, JSON.toJSONString(req.getObject()));
 	}
 
 	@Subscribe

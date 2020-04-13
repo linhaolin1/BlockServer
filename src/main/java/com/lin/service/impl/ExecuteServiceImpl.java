@@ -1,29 +1,28 @@
 package com.lin.service.impl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLDecoder;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.sql.DataSource;
-
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson.JSONObject;
+import com.lin.NettyServer;
+import com.lin.block.ProcessArgument;
+import com.lin.block.ProcessArgumentComplex;
+import com.lin.block.ProcessIntro;
+import com.lin.constants.BlockConstant;
+import com.lin.constants.Result;
+import com.lin.dao.*;
+import com.lin.entity.*;
+import com.lin.interfacePackage.AbstractPlugin;
+import com.lin.interfacePackage.AbstractVariableParamPlugin;
+import com.lin.interfacePackage.Annotation.*;
+import com.lin.interfacePackage.request.VariableParamReq;
+import com.lin.interfacePackage.request.VariableParamResp;
+import com.lin.request.req.*;
+import com.lin.request.resp.*;
+import com.lin.service.ExecuteService;
+import com.lin.service.SequenceService;
+import com.lin.util.DataloaderInterface;
+import com.lin.util.EntityListUtil;
+import com.lin.util.FileManager;
+import com.lin.util.ParamUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -38,65 +37,23 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.fastjson.JSONObject;
-import com.lin.NettyServer;
-import com.lin.block.ProcessArgument;
-import com.lin.block.ProcessArgumentComplex;
-import com.lin.block.ProcessIntro;
-import com.lin.constants.BlockConstant;
-import com.lin.constants.Result;
-import com.lin.dao.BlockDao;
-import com.lin.dao.DataSourceDao;
-import com.lin.dao.DataTableDao;
-import com.lin.dao.ExecuteDao;
-import com.lin.dao.ExecuteParamDao;
-import com.lin.dao.NextDao;
-import com.lin.dao.NextRequirementDao;
-import com.lin.dao.PluginDao;
-import com.lin.dao.PluginMethodDao;
-import com.lin.dao.ProcessArgumentComplexDao;
-import com.lin.dao.ProcessArgumentDao;
-import com.lin.dao.ProcessDao;
-import com.lin.entity.BlockEntity;
-import com.lin.entity.DataSourceEntity;
-import com.lin.entity.ExecuteEntity;
-import com.lin.entity.ExecuteParamEntity;
-import com.lin.entity.NextEntity;
-import com.lin.entity.NextRequirementEntity;
-import com.lin.entity.PluginEntity;
-import com.lin.entity.PluginMethodEntity;
-import com.lin.entity.ProcessArgumentComplexEntity;
-import com.lin.entity.ProcessArgumentEntity;
-import com.lin.entity.ProcessEntity;
-import com.lin.interfacePackage.AbstractPlugin;
-import com.lin.interfacePackage.AbstractVariableParamPlugin;
-import com.lin.interfacePackage.Annotation.DatabaseTableAnnotation;
-import com.lin.interfacePackage.Annotation.InitParam;
-import com.lin.interfacePackage.Annotation.PlguinMethodOutputParamAnnotation;
-import com.lin.interfacePackage.Annotation.PlguinMethodOutputVariableParamAnnotation;
-import com.lin.interfacePackage.Annotation.PluginMethodParamAnnotation;
-import com.lin.interfacePackage.Annotation.PluginMethodVariableParamAnnotation;
-import com.lin.interfacePackage.request.VariableParamReq;
-import com.lin.interfacePackage.request.VariableParamResp;
-import com.lin.request.req.DelExecuteReq;
-import com.lin.request.req.GetExecuteParamsReq;
-import com.lin.request.req.GetExecuteVariableParamsReq;
-import com.lin.request.req.SaveExecuteParamReq;
-import com.lin.request.req.SaveExecuteReq;
-import com.lin.request.resp.DelExecuteResp;
-import com.lin.request.resp.ExportProcessResp;
-import com.lin.request.resp.GetExecuteParamsResp;
-import com.lin.request.resp.GetExecuteVariableParamsResp;
-import com.lin.request.resp.GetProcessResp;
-import com.lin.request.resp.SaveExecuteParamResp;
-import com.lin.request.resp.SaveExecuteResp;
-import com.lin.service.ExecuteService;
-import com.lin.service.SequenceService;
-import com.lin.util.DataloaderInterface;
-import com.lin.util.EntityListUtil;
-import com.lin.util.FileManager;
-import com.lin.util.ParamUtil;
+import javax.sql.DataSource;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLDecoder;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @Transactional(value = "businessTransactionManager", rollbackFor = Exception.class)
@@ -324,8 +281,8 @@ public class ExecuteServiceImpl implements ExecuteService {
 
 			ee.execute(loader);
 
-			sequenceService.save("execute exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
-					e.getBlock(), e.getId(), null);
+//			sequenceService.save("execute exe " + e.getId(), sequenceId, System.currentTimeMillis() - time, processId,
+//					e.getBlock(), e.getId(), null);
 		}
 	}
 
@@ -646,6 +603,23 @@ public class ExecuteServiceImpl implements ExecuteService {
 				Field[] fields = parameters[0].getType().getDeclaredFields();
 
 				// 某种标识的直接从map放进dataloader
+				Map<String,String> executeParamMap=new HashMap<String,String>();
+				for (ExecuteParamEntity ep : exeParams) {
+					if (ep.getType() != BlockConstant.args_type_input) {
+						continue;
+					}
+
+					for (Field f : fields) {
+						if (f.getAnnotation(PluginMethodParamAnnotation.class) != null
+								|| f.getAnnotation(DatabaseTableAnnotation.class) != null
+								|| f.getAnnotation(PluginMethodVariableParamAnnotation.class) != null) {
+							if (f.getName().equals(ep.getFieldName())) {
+								executeParamMap.put(ep.getParam(),ep.getParam());
+							}
+						}
+					}
+				}
+
 
 				for (ExecuteParamEntity ep : exeParams) {
 					if (ep.getType() != BlockConstant.args_type_input) {
@@ -658,9 +632,10 @@ public class ExecuteServiceImpl implements ExecuteService {
 								|| f.getAnnotation(PluginMethodVariableParamAnnotation.class) != null) {
 							if (f.getName().equals(ep.getFieldName())) {
 								f.setAccessible(true);
+								String value=loader.parseValue(ep.getParam());
 
-								if (StringUtils.isBlank(loader.parseValue(ep.getParam()))
-										|| "null".equals(loader.parseValue(ep.getParam()))) {
+								if (StringUtils.isBlank(value)
+										|| "null".equals(value)) {
 									continue;
 								}
 
@@ -672,12 +647,12 @@ public class ExecuteServiceImpl implements ExecuteService {
 									List list = (List) f.get(params[0]);
 									Type fc = f.getGenericType();
 									if ((fc instanceof ParameterizedType)) {
-										ParameterizedType pt = (ParameterizedType) fc;
-										Class genericClass = (Class) pt.getActualTypeArguments()[0];
+//										ParameterizedType pt = (ParameterizedType) fc;
+//										Class genericClass = (Class) pt.getActualTypeArguments()[0];
 
-										list.add(loader.parseValue(ep.getParam()));
+										list.add(value);
 									} else {
-										list.add(loader.parseValue(ep.getParam()));
+										list.add(value);
 									}
 								}
 
@@ -689,16 +664,16 @@ public class ExecuteServiceImpl implements ExecuteService {
 									Map map = (Map) f.get(params[0]);
 									Type fc = f.getGenericType();
 									if ((fc instanceof ParameterizedType)) {
-										ParameterizedType pt = (ParameterizedType) fc;
-										Class genericClass = (Class) pt.getActualTypeArguments()[1];
+//										ParameterizedType pt = (ParameterizedType) fc;
+//										Class genericClass = (Class) pt.getActualTypeArguments()[1];
 
-										map.put(ep.getPluginMethodParam(), loader.parseValue(ep.getParam()));
+										map.put(ep.getPluginMethodParam(), value);
 									} else {
-										map.put(ep.getPluginMethodParam(), loader.parseValue(ep.getParam()));
+										map.put(ep.getPluginMethodParam(), value);
 									}
 
 								} else {
-									f.set(params[0], loader.parseValue(ep.getParam()));
+									f.set(params[0], value);
 								}
 							}
 
@@ -706,10 +681,15 @@ public class ExecuteServiceImpl implements ExecuteService {
 					}
 				}
 
-				params[1] = parameters[1].getType().newInstance();
-
-				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_LOADDATA, sequenceId,
+				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_LOADDATA+"-REAL LOAD", sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);
+
+				params[1] = parameters[1].getType().newInstance();
+				//批量写入
+
+
+				Map<String,Object> outputMap=new HashMap<String,Object>();
+
 				time = System.currentTimeMillis();
 				m.invoke(exe, params);
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_INVOKE, sequenceId,
@@ -722,8 +702,6 @@ public class ExecuteServiceImpl implements ExecuteService {
 						continue;
 					}
 					for (Field f : fields2) {
-						PlguinMethodOutputParamAnnotation anno = f
-								.getAnnotation(PlguinMethodOutputParamAnnotation.class);
 						if (f.getAnnotation(PlguinMethodOutputParamAnnotation.class) == null
 								&& f.getAnnotation(PlguinMethodOutputVariableParamAnnotation.class) == null)
 							continue;
@@ -737,21 +715,21 @@ public class ExecuteServiceImpl implements ExecuteService {
 									&& f.getAnnotation(PlguinMethodOutputVariableParamAnnotation.class) != null) {
 								Map map = (Map) f.get(params[1]);
 								if (ep.getPluginMethodParam() != null) {
-									loader.put(loader.parseValue(ep.getParam()), map.get(ep.getPluginMethodParam()));
+									outputMap.put(loader.parseValue(ep.getParam()), map.get(ep.getPluginMethodParam()));
 								}
 							} else {
 								if (f.get(params[1]) == null) {
-									loader.put(loader.parseValue(ep.getParam()), "");
+									outputMap.put(loader.parseValue(ep.getParam()), "");
 								} else {
-									loader.put(loader.parseValue(ep.getParam()), f.get(params[1]));
+									outputMap.put(loader.parseValue(ep.getParam()), f.get(params[1]));
 								}
-
 							}
 							// }
 
 						}
 					}
 				}
+				loader.putAll(outputMap);
 
 				sequenceService.save(BlockConstant.PROCESS_SEQUENCE_OUTPUTDATA, sequenceId,
 						System.currentTimeMillis() - time, processId, blockId, execute.getId(), remark);

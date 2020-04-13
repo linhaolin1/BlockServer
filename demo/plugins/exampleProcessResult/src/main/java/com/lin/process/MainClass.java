@@ -147,7 +147,6 @@ public class MainClass extends AbstractVariableParamPlugin {
 
 	@PluginMethodAnnotation(name = "SHA1")
 	public void sha1(SHA1Req req, SHA1Resp resp) {
-
 		resp.setResult(encodePass(req.getString(), PasswordType.SHA1));
 	}
 
