@@ -499,4 +499,18 @@ public class HashMapDataLoader implements DataloaderInterface {
 		
 	}
 
+	@Override
+	public void acquireLock() {
+
+	}
+
+	@Override
+	public void releaseLock() {
+
+	}
+
+	@Override
+	public void release() {
+		destory();
+	}
 }

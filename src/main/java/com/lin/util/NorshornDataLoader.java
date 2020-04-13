@@ -1,31 +1,26 @@
 package com.lin.util;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
 import com.alibaba.fastjson.JSON;
 import com.lin.constants.BlockConstant;
 import com.lin.entity.AbstractEntity;
 import com.lin.nettyserver.http.util.string.StringConverter;
 import com.lin.nettyserver.http.util.string.StringConverters;
 
-public class NorshornDataLoader implements DataloaderInterface{
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+class NorshornDatdeLoader implements DataloaderInterface{
 	// public ConcurrentHashMap<String, Object> valueMap = new
 	// ConcurrentHashMap<String, Object>();
 
@@ -44,7 +39,7 @@ public class NorshornDataLoader implements DataloaderInterface{
 
 	public static Pattern countPattern = Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z_]\\)+"); // 位置匹配正则式
 
-	public NorshornDataLoader(String filePath) {
+	public NorshornDatdeLoader(String filePath) {
 		if(engine!=null)
 			return;
 		
@@ -100,8 +95,6 @@ public class NorshornDataLoader implements DataloaderInterface{
 		//
 		// System.out.println(dl.parseValue(String.class, s));
 
-		NorshornDataLoader dl = new NorshornDataLoader("e:\\test.js");
-		System.out.println(dl.parseNormalValue("{notify_url}"));
 
 	}
 
@@ -520,4 +513,18 @@ public class NorshornDataLoader implements DataloaderInterface{
 		
 	}
 
+	@Override
+	public void acquireLock() {
+
+	}
+
+	@Override
+	public void releaseLock() {
+
+	}
+
+	@Override
+	public void release() {
+		destory();
+	}
 }

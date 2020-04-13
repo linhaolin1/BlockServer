@@ -56,5 +56,9 @@
 	<bean id="consul" class="com.ecwid.consul.v1.ConsulClient">
 		<constructor-arg index="0" value="${consul.host}" />
 	</bean>
-	
+
+	<bean id="dataloaderPool" class="com.lin.util.DataloaderPool">
+		<constructor-arg index="0" value="${jsPath}" />
+	</bean>
+
 </beans>
