@@ -34,7 +34,7 @@
 4.根据流程输出参数，设置输出内容
 ```
 
-参考：[创建支付订单流程](http://10.227.14.161:8090/flowchart.html?processId=12)
+参考：[创建支付订单流程](http://106.52.110.245/management/flowchart.html?processId=12)
 
 
 ####测试流程
@@ -50,7 +50,7 @@
 
 
 调用方法：  
-http post请求 ： http://10.227.14.161:8090/block-server/jsonRequest    
+http post请求 ： http://106.52.110.245:8090/block-server/jsonRequest    
 json化body内容
 ```json
  {"processId":"{地址栏中的流程id}","object":{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}}
@@ -64,7 +64,7 @@ sdk参考[blockSdk](https://github.com/linhaolin1/BlockServer/tree/master/sdk/bl
 demo组件参考[plugins](https://ee.byted.org/madeira/repo/ei/experiment.block-server/-/blob/demo/plugins/readme.md)
 
 ## 案例
-流程设计展示：http://10.227.14.161:8090/list.html
+流程设计展示：http://106.52.110.245/management/list.html
 
 ## 系统本身
 系统本身使用Netty+spring+mybatis完成基本内容  
