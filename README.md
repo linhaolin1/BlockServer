@@ -61,7 +61,7 @@ json化body内容
 ### 技术组件
 积木中的组件为配置了积木SDK的注解并打包后的jar包   
 sdk参考[blockSdk](https://github.com/linhaolin1/BlockServer/tree/master/sdk/blockSdk)  
-demo组件参考[plugins](https://ee.byted.org/madeira/repo/ei/experiment.block-server/-/blob/demo/plugins/readme.md)
+demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/demo/plugins)
 
 ## 案例
 流程设计展示：http://106.52.110.245/management/list.html
