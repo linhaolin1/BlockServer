@@ -100,46 +100,48 @@ public class ProcessServiceImpl implements ProcessService {
 
         DataloaderInterface loader = dataloaderPool.claim();
         loader.acquireLock();
-        // DataloaderInterface loader = new JsDataLoader(jsPath);
-        sequenceService.save("LOAD JS", 1L, System.currentTimeMillis() - time,
-                req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-        time = System.currentTimeMillis();
-        ProcessEntity process = processDao.findFromTempById(req.getProcessId());
+        try {
+            // DataloaderInterface loader = new JsDataLoader(jsPath);
+            sequenceService.save("LOAD JS", 1L, System.currentTimeMillis() - time,
+                    req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+            time = System.currentTimeMillis();
+            ProcessEntity process = processDao.findFromTempById(req.getProcessId());
 
 
-        loader.putAll(req.getObject());
-        loader.put(BlockConstant.PROPERITY_KEY_IP, req.getProperty(BlockConstant.PROPERITY_KEY_IP));
-        sequenceService.save("LOAD PROCESS", 1L, System.currentTimeMillis() - time,
-                req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-        time = System.currentTimeMillis();
-        executeProcess(process, loader, sequenceId);
-        sequenceService.save("EXECUTE PROCESS", 1L, System.currentTimeMillis() - time,
-                req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-        time = System.currentTimeMillis();
-        HashMap map = new HashMap();
-        List<ProcessArgumentEntity> args = processArgumentDao.findFromTempByProcess(req.getProcessId());
+            loader.putAll(req.getObject());
+            loader.put(BlockConstant.PROPERITY_KEY_IP, req.getProperty(BlockConstant.PROPERITY_KEY_IP));
+            sequenceService.save("LOAD PROCESS", 1L, System.currentTimeMillis() - time,
+                    req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+            time = System.currentTimeMillis();
+            executeProcess(process, loader, sequenceId);
+            sequenceService.save("EXECUTE PROCESS", 1L, System.currentTimeMillis() - time,
+                    req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+            time = System.currentTimeMillis();
+            HashMap map = new HashMap();
+            List<ProcessArgumentEntity> args = processArgumentDao.findFromTempByProcess(req.getProcessId());
 
 
-        for (ProcessArgumentEntity arg : args) {
-            if (arg.getType() == BlockConstant.args_type_output) {
-                try {
-                    map.put(arg.getName(), JSON.parse(String.valueOf(loader.parseValue("val(" + arg.getName() + ")"))));
-                } catch (Exception e) {
-                    map.put(arg.getName(), loader.parseValue("val(" + arg.getName() + ")"));
+            for (ProcessArgumentEntity arg : args) {
+                if (arg.getType() == BlockConstant.args_type_output) {
+                    try {
+                        map.put(arg.getName(), JSON.parse(String.valueOf(loader.parseValue("{" + arg.getName() + "}"))));
+                    } catch (Exception e) {
+                        map.put(arg.getName(), loader.parseValue("{" + arg.getName() + "}"));
+                    }
                 }
             }
+            if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)))) {
+                resp.setMsg(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)));
+            }
+            if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT)))) {
+                resp.setResult(Integer.parseInt(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT))));
+            }
+            resp.setResponse(map);
+            sequenceService.save("OUTPUT PROCESS", 1L, System.currentTimeMillis() - time,
+                    req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
+        }finally {
+            loader.release();
         }
-        if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)))) {
-            resp.setMsg(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)));
-        }
-        if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT)))) {
-            resp.setResult(Integer.parseInt(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_RESULT))));
-        }
-
-        loader.release();
-        resp.setResponse(map);
-        sequenceService.save("OUTPUT PROCESS", 1L, System.currentTimeMillis() - time,
-                req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
 
     }
 

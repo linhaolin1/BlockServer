@@ -19,7 +19,7 @@ public class DataloaderPool implements Allocator<DataloaderInterface> {
 
     @Override
     public DataloaderInterface allocate(Slot slot) throws Exception {
-        return new JsDataLoader(jsPath, slot);
+        return new AnotherJsDataLoader(slot);
     }
 
     @Override

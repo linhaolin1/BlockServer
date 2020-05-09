@@ -1,37 +1,29 @@
 package com.lin.util;
 
 import com.alibaba.fastjson.JSON;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8ResultUndefined;
-import com.eclipsesource.v8.V8Value;
 import com.lin.constants.BlockConstant;
 import com.lin.entity.AbstractEntity;
 import com.lin.nettyserver.http.util.string.StringConverter;
 import com.lin.nettyserver.http.util.string.StringConverters;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.Context;
 import stormpot.Slot;
 
 import javax.script.ScriptException;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
-public class JsDataLoader implements DataloaderInterface {
+public class AnotherJsDataLoader implements DataloaderInterface {
     // public ConcurrentHashMap<String, Object> valueMap = new
     // ConcurrentHashMap<String, Object>();
     private final Slot slot;
 
-    V8 engine;
+    Context context;
 
 
     private List<String> keys = new ArrayList<String>();
@@ -43,73 +35,17 @@ public class JsDataLoader implements DataloaderInterface {
 
     public static Pattern countPattern = Pattern.compile("(?i)count\\([\\{\\}A-Z0-9a-z_]\\)+"); // 位置匹配正则式
     private List<String> functionList = new ArrayList<String>();
-    public JsDataLoader(Slot slot){
+    public AnotherJsDataLoader(Slot slot){
         this.slot=slot;
-        try {
-            engine = V8.createV8Runtime();
-        } catch (IllegalStateException stateException) {
-            Path path = Paths.get("" + System.currentTimeMillis());
-            System.out.println("path=" + path.toString());
-            if (!Files.exists(path)) {
-                try {
-                    Files.createDirectories(path);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-            engine = V8.createV8Runtime(null, path.toString());
-        }
+        context = Context.newBuilder("js")
+                .allowAllAccess(true)
+                .build();
     }
-    public JsDataLoader(String filePath, Slot slot) {
+    public AnotherJsDataLoader(String filePath, Slot slot) {
         this.slot = slot;
-        try {
-            engine = V8.createV8Runtime();
-        } catch (IllegalStateException stateException) {
-            Path path = Paths.get("" + System.currentTimeMillis());
-            System.out.println("path=" + path.toString());
-            if (!Files.exists(path)) {
-                try {
-                    Files.createDirectories(path);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-
-            engine = V8.createV8Runtime(null, path.toString());
-        }
-
-        String jsFileName = filePath; // 读取js文件
-        Stream<Path> paths = null;
-        try {
-            paths = Files.list(Paths.get(jsFileName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        paths.forEach(new Consumer<Path>() {
-            @Override
-            public void accept(Path path) {
-                try {
-                    List<String> array = Files.readAllLines(path);
-                    StringBuilder sb = new StringBuilder();
-                    for (String s : array) {
-                        if (s.startsWith("function")) {
-                            functionList.add(s.substring("function ".length(), s.indexOf("(")));
-                        }
-                        sb.append(s + "\n");
-                    }
-                    engine.executeScript(sb.toString());
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        });
-        engine.getLocker().release();
+        context = Context.newBuilder("js")
+                .allowAllAccess(true)
+                .build();
     }
     public static class C {
         public String name;
@@ -144,7 +80,7 @@ public class JsDataLoader implements DataloaderInterface {
         map.put("name", "a2");
 
 
-		JsDataLoader dl = new JsDataLoader(null);
+		AnotherJsDataLoader dl = new AnotherJsDataLoader(null);
 		dl.put("账号", "123");
 		dl.put("时间", new Date().toString());
 		dl.put("array", ar);
@@ -171,7 +107,7 @@ public class JsDataLoader implements DataloaderInterface {
     }
 
     public void put(String name, Object value) {
-        engine.executeScript(putStr(name, value));
+        context.eval("js",putStr(name, value));
         keys.add(name);
     }
 
@@ -184,7 +120,7 @@ public class JsDataLoader implements DataloaderInterface {
             Matcher ma2 = BlockConstant.PATTERN_NAME_ARRAY_POSITION.matcher(group);
             ma2.find();
             String preName = name.substring(0, ma.start() + ma2.start());
-            if ("true".equals(String.valueOf(engine.executeScript("typeof " + preName + "=='undefined'")))) {
+            if ("true".equals(String.valueOf(context.eval("js","typeof " + preName + "=='undefined'")))) {
                 scriptStr.append(preName + " = [];");
             }
         }
@@ -194,7 +130,7 @@ public class JsDataLoader implements DataloaderInterface {
         for (int i = 0; i < splitByDot.length - 1; i++) {
             String dot = splitByDot[i];
             sb.append(dot);
-            if ("true".equals(String.valueOf(engine.executeScript("typeof " + sb.toString() + "=='undefined'")))) {
+            if ("true".equals(String.valueOf(context.eval("js","typeof " + sb.toString() + "=='undefined'")))) {
                 scriptStr.append(sb.toString() + " = {};");
             }
             sb.append(".");
@@ -232,7 +168,7 @@ public class JsDataLoader implements DataloaderInterface {
                 sb.append(putStr(o.getKey(), o.getValue()));
                 keys.add(o.getKey());
             }
-            engine.executeScript(sb.toString());
+            context.eval("js",sb.toString());
         }
     }
 
@@ -240,19 +176,19 @@ public class JsDataLoader implements DataloaderInterface {
 
         if (StringUtils.isBlank(name))
             return "";
-        String type = (String) engine.executeScript("typeof(" + name + ")");
+        String type = context.eval("js","typeof(" + name + ")").toString();
         if (type.equals("object")) {
-            return engine.executeScript("JSON.stringify(" + name + ")");
+            return context.eval("js","JSON.stringify(" + name + ")").toString();
         } else if (type.equals("undefined")) {
             return "";
         } else {
-            return engine.get(name).toString();
+            return context.getBindings("js").getMember(name).toString();
         }
     }
 
     public void outputAll() {
         for (String s : keys) {
-            System.out.println("name = " + s + " value =" + engine.executeScript(s));
+            System.out.println("name = " + s + " value =" + context.eval("js",s));
         }
     }
 
@@ -525,26 +461,26 @@ public class JsDataLoader implements DataloaderInterface {
         }
         try {
 
-            String valueType = (String) engine.executeScript("typeof(" + pa + ")");
+            String valueType = context.eval("js","typeof(" + pa + ")").toString();
             if (valueType.equals("object")) {
-                s = String.valueOf(engine.executeScript("JSON.stringify(" + pa + ")"));
+                s = String.valueOf(context.eval("js","JSON.stringify(" + pa + ")"));
             } else if (valueType.equals("undefined")) {
                 return null;
             } else {
-                s = String.valueOf(engine.executeScript(pa));
+                s = String.valueOf(context.eval("js",pa));
             }
             return s;
         } catch (Exception e) {
             // TODO Auto-generated catch block
             pa = "'" + pa + "'";
             try {
-                String valueType = (String) engine.executeScript("typeof(" + pa + ")");
+                String valueType =context.eval("js","typeof(" + pa + ")").toString();
                 if (valueType.equals("object")) {
-                    s = String.valueOf(engine.executeScript("JSON.stringify(" + pa + ")"));
+                    s = String.valueOf(context.eval("js","JSON.stringify(" + pa + ")"));
                 } else if (valueType.equals("undefined")) {
                     return null;
                 } else {
-                    s = String.valueOf(engine.executeScript(pa));
+                    s = String.valueOf(context.eval("js",pa));
                 }
             } catch (Exception se) {
                 se.printStackTrace();
@@ -594,42 +530,25 @@ public class JsDataLoader implements DataloaderInterface {
     @Override
     public void destory() {
         // TODO Auto-generated method stub
-        for (String key : engine.getKeys()) {
-            if (!(engine.getType(key) == V8Value.UNDEFINED)) {
-                try {
-                    if (engine.getObject(key) != null)
-                        engine.getObject(key).release();
-                } catch (V8ResultUndefined e) {
-
-                }
-            }
-        }
-
-        engine.release(false);
+        release();
+        context.close();
     }
 
     @Override
     public void acquireLock() {
-        engine.getLocker().acquire();
+
     }
 
     @Override
     public void releaseLock() {
-        engine.getLocker().release();
+
     }
 
     @Override
     public void release() {
         // TODO Auto-generated method stub
-        for (String key : engine.getKeys()) {
-            if (!(engine.getType(key) == V8Value.UNDEFINED)) {
-                try {
-                    if (engine.getObject(key) != null)
-                        engine.getObject(key).release();
-                } catch (V8ResultUndefined e) {
-
-                }
-            }
+        for (String key : context.getBindings("js").getMemberKeys()) {
+            context.getBindings("js").removeMember(key);
         }
         this.releaseLock();
         slot.release(this);

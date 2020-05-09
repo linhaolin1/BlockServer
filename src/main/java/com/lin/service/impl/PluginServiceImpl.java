@@ -37,6 +37,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -111,6 +112,7 @@ public class PluginServiceImpl implements PluginService {
                                         // throw new IllegalArgumentException(" not
                                         // compatible！");
                                         // }
+                                        plugin.setFileName(fileName);
                                         plugin.setIntroduction(introduce);
                                         plugin.setName(name);
                                         pluginDao.update(plugin);
@@ -178,7 +180,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public void savePlugin(byte[] fileByte, String name, String fileName,String introduce) {
         try {
-            Files.write(Paths.get(pluginPath + fileName), fileByte);
+            Files.write(Paths.get(pluginPath + fileName), fileByte, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             savePlugin(pluginPath + fileName, name, "");
         } catch (Exception e) {
             e.printStackTrace();

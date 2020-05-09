@@ -632,9 +632,9 @@ public class ExecuteServiceImpl implements ExecuteService {
 								|| f.getAnnotation(PluginMethodVariableParamAnnotation.class) != null) {
 							if (f.getName().equals(ep.getFieldName())) {
 								f.setAccessible(true);
-								String value=loader.parseValue(ep.getParam());
+								Object value=loader.parseValue(ep.getParam());
 
-								if (StringUtils.isBlank(value)
+								if (StringUtils.isBlank(value.toString())
 										|| "null".equals(value)) {
 									continue;
 								}
@@ -667,13 +667,13 @@ public class ExecuteServiceImpl implements ExecuteService {
 //										ParameterizedType pt = (ParameterizedType) fc;
 //										Class genericClass = (Class) pt.getActualTypeArguments()[1];
 
-										map.put(ep.getPluginMethodParam(), value);
+										map.put(ep.getPluginMethodParam(), value.toString());
 									} else {
-										map.put(ep.getPluginMethodParam(), value);
+										map.put(ep.getPluginMethodParam(), value.toString());
 									}
 
 								} else {
-									f.set(params[0], value);
+									f.set(params[0], value.toString());
 								}
 							}
 
@@ -715,13 +715,13 @@ public class ExecuteServiceImpl implements ExecuteService {
 									&& f.getAnnotation(PlguinMethodOutputVariableParamAnnotation.class) != null) {
 								Map map = (Map) f.get(params[1]);
 								if (ep.getPluginMethodParam() != null) {
-									outputMap.put(loader.parseValue(ep.getParam()), map.get(ep.getPluginMethodParam()));
+									outputMap.put(loader.parseValue(ep.getParam()).toString(), map.get(ep.getPluginMethodParam()));
 								}
 							} else {
 								if (f.get(params[1]) == null) {
-									outputMap.put(loader.parseValue(ep.getParam()), "");
+									outputMap.put(loader.parseValue(ep.getParam()).toString(), "");
 								} else {
-									outputMap.put(loader.parseValue(ep.getParam()), f.get(params[1]));
+									outputMap.put(loader.parseValue(ep.getParam()).toString(), f.get(params[1]));
 								}
 							}
 							// }

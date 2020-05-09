@@ -1,13 +1,5 @@
 package com.lin.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lin.dao.DataTableDao;
@@ -16,6 +8,13 @@ import com.lin.interfacePackage.Annotation.DatabaseTableAnnotation;
 import com.lin.interfacePackage.Annotation.PlguinMethodOutputParamAnnotation;
 import com.lin.interfacePackage.Annotation.PluginMethodAnnotation;
 import com.lin.interfacePackage.Annotation.PluginMethodParamAnnotation;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ParamUtil {
 
@@ -176,8 +175,8 @@ public class ParamUtil {
 	}
 
 	public static boolean isOK(DataloaderInterface loader, NextRequirementEntity requirement) {
-		String parsedContent = (String) loader.parseValue(requirement.getParam1());
-		String parsedContent2 = (String) loader.parseValue(requirement.getParam2());
+		String parsedContent =  loader.parseValue(requirement.getParam1()).toString();
+		String parsedContent2 =  loader.parseValue(requirement.getParam2()).toString();
 		String method = requirement.getMethod();
 
 		return compare(parsedContent, method, parsedContent2);

@@ -117,9 +117,6 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 				if (decodec instanceof KvDecodec) {
 					requestEvent = postKvDecode(decodec, queryStringDecoder, clazz);
 				} else if (decodec instanceof JsonDecodec||decodec instanceof XmlDecodec) {
-					System.out.println("======== ");
-					System.out.println(this.buf.toString());
-
 					requestEvent = decodec.decode(this.buf.toString(), clazz);
 				} else if (decodec instanceof MutipartDecodec) {
 					requestEvent = decodec.decode(mutiDecoder, clazz);

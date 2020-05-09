@@ -829,7 +829,7 @@ jsPlumb.ready(function () {
 		
 	}
 	
-	var saveNext=function(conId,nextId,name,condition,from,to){
+	var saveNext=function(con,nextId,name,condition,from,to){
 		var data={};
 		data.name=name;
 		data.condition=condition;
@@ -849,7 +849,8 @@ jsPlumb.ready(function () {
 			success:function(data){ 
 				if(data.result!=0)
 					return;
-				
+
+				con.next=data.next.id
 			},
 			complete:function(){
 				addConnectionEvent();
@@ -1139,11 +1140,6 @@ jsPlumb.ready(function () {
 		var argsName=$("div.subpanel.new-next > div.panel > div.panel-body > div.input-group > input").val();
 		argsName=filterXSS(argsName);
 		
-		if(!argsName||argsName==''){
-			showlog("请填写条件名称");
-			return;
-		}
-		
 		var con=getConnectionById($("div.subpanel.new-next").attr("belong-id"));
 		
 		con.getOverlay("label").setLabel(argsName);
@@ -1164,7 +1160,7 @@ jsPlumb.ready(function () {
 		}
 		con.condition=jsonArray;
 		
-		saveNext($("div.subpanel.new-next").attr("belong-id"),con.next,argsName,jsonArray,getParsedBlockId(con.sourceId),getParsedBlockId(con.targetId));
+		saveNext(con,con.next,argsName,jsonArray,getParsedBlockId(con.sourceId),getParsedBlockId(con.targetId));
 		
 		$("body > div.subpanel.new-next > div.panel.panel-info > div.panel-body > div.row").remove();
 		condition=1;
@@ -1361,21 +1357,19 @@ jsPlumb.ready(function () {
 	var addConnectionEvent=function(){
 		instance.bind("connection", function (info) {
 			//填写next
-			
 			var connection=info.connection;
 			console.log(connection)
-			
 			
 			if(connection.source&&connection.target){
 				var connections1=instance.getConnections({"source":connection.source,"target":connection.target});
 				
 				if(connections1.length>1){
 					showlog("已经存在这个执行路线了");
-					
 					instance.detach(connection);
 				}else{
 					if(!connection.next&&connection.source&&connection.target){
-						showSubPanel("new-next",connection.id);
+						saveNext(connection,false,"",[],getParsedBlockId(connection.sourceId),getParsedBlockId(connection.targetId));
+						// showSubPanel("new-next",connection.id);
 					}else if(connection.next){
 						redirectNext(connection.next,getParsedBlockId(connection.sourceId),getParsedBlockId(connection.targetId));
 					}
