@@ -112,8 +112,6 @@ public class HttpChannelHandler extends ChannelHandlerAdapter {
 				Class clazz = this.config.getClass(url);
 				Object requestEvent = null;
 
-				System.out.println("decode name ="+decodec.getClass().getName());
-
 				if (decodec instanceof KvDecodec) {
 					requestEvent = postKvDecode(decodec, queryStringDecoder, clazz);
 				} else if (decodec instanceof JsonDecodec||decodec instanceof XmlDecodec) {

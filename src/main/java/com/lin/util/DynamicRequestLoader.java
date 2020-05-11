@@ -27,7 +27,6 @@ public class DynamicRequestLoader implements ApplicationContextAware, Applicatio
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		// TODO Auto-generated method stub
-		System.out.println("dynamic request init");
 
 		if ((event instanceof ContextRefreshedEvent)) {
 			ProcessDao dao = context.getBean(ProcessDao.class);

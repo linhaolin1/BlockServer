@@ -60,6 +60,7 @@ public class JsDataLoader implements DataloaderInterface {
             }
             engine = V8.createV8Runtime(null, path.toString());
         }
+        engine.getLocker().release();
     }
     public JsDataLoader(String filePath, Slot slot) {
         this.slot = slot;
@@ -495,6 +496,10 @@ public class JsDataLoader implements DataloaderInterface {
         while (s != null && s.startsWith("\"") && s.endsWith("\""))
             s = s.substring(1, s.length() - 1);
         return s;
+    }
+
+    public Object parseJsonValue(String pa){
+        return parseValue(pa);
     }
 
     public boolean isNeedJs(String pa) {

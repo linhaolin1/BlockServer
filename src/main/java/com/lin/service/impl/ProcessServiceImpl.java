@@ -123,11 +123,21 @@ public class ProcessServiceImpl implements ProcessService {
 
             for (ProcessArgumentEntity arg : args) {
                 if (arg.getType() == BlockConstant.args_type_output) {
-                    try {
-                        map.put(arg.getName(), JSON.parse(String.valueOf(loader.parseValue("{" + arg.getName() + "}"))));
-                    } catch (Exception e) {
-                        map.put(arg.getName(), loader.parseValue("{" + arg.getName() + "}"));
-                    }
+                    Object object=loader.parseJsonValue("{" + arg.getName() + "}");
+                    map.put(arg.getName(), object);
+//                    if (object!=null){
+//                        try {
+//                            map.put(arg.getName(), JSON.toJSON(object));
+//                        } catch (Exception e) {
+//                            if (object.toString()!=null){
+//                                try {
+//                                    map.put(arg.getName(), JSON.parseObject(object.toString()));
+//                                }catch (Exception ex){
+//                                    map.put(arg.getName(), object.toString());
+//                                }
+//                            }
+//                        }
+//                    }
                 }
             }
             if (!StringUtils.isBlank(String.valueOf(loader.get(BlockConstant.PROPERITY_KEY_MSG)))) {
@@ -139,7 +149,7 @@ public class ProcessServiceImpl implements ProcessService {
             resp.setResponse(map);
             sequenceService.save("OUTPUT PROCESS", 1L, System.currentTimeMillis() - time,
                     req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
-        }finally {
+        } finally {
             loader.release();
         }
 

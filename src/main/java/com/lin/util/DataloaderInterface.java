@@ -11,7 +11,7 @@ public interface DataloaderInterface extends Poolable {
 
 	public static Pattern textPattern2 = Pattern.compile("\\{[a-zA-Z0-9_.\\u4e00-\\u9fa5]*+\\}"); // 逻辑内容匹配正则式2,用于循环填充
 
-
+	public Object parseJsonValue(String pa);
 	public Object parseValue(String pa);
 
 	public void put(String name, Object value);
