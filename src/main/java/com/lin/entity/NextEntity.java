@@ -1,41 +1,50 @@
 package com.lin.entity;
 
 public class NextEntity extends AbstractEntity {
-	private String name;
-	private Integer block = 0;
-	private Integer value = 0;
-	private Integer position = 0;
+    private String name;
+    private Integer block = 0;
+    private Integer value = 0;
+    private Integer type = 0;
+    private Integer priority = 0;
 
-	public String getName() {
-		return name;
-	}
+    public Integer getType() {
+        return type;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setType(Integer type) {
+        this.type = type;
+    }
 
-	public Integer getBlock() {
-		return block;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setBlock(Integer block) {
-		this.block = block;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public Integer getValue() {
-		return value;
-	}
+    public Integer getBlock() {
+        return block;
+    }
 
-	public void setValue(Integer value) {
-		this.value = value;
-	}
+    public void setBlock(Integer block) {
+        this.block = block;
+    }
 
-	public Integer getPosition() {
-		return position;
-	}
+    public Integer getValue() {
+        return value;
+    }
 
-	public void setPosition(Integer position) {
-		this.position = position;
-	}
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public void setValue(Integer value) {
+        this.value = value;
+    }
 
 }

@@ -41,7 +41,7 @@ public class NextServiceImpl implements NextService {
 		next.setName(req.getName());
 		next.setBlock(req.getFrom());
 		next.setValue(req.getTo());
-		next.setPosition(req.getPosition());
+		next.setPriority(req.getPosition());
 
 		if (req.getNextId() != null && req.getNextId() > 0) {
 			nextDao.updateToTemp(next);

@@ -501,6 +501,9 @@ public class JsDataLoader implements DataloaderInterface {
     public Object parseJsonValue(String pa){
         return parseValue(pa);
     }
+    public String parseStringValue(String pa){
+        return parseValue(pa);
+    }
 
     public boolean isNeedJs(String pa) {
         boolean fourFundamental = false;
@@ -621,6 +624,11 @@ public class JsDataLoader implements DataloaderInterface {
     @Override
     public void releaseLock() {
         engine.getLocker().release();
+    }
+
+    @Override
+    public Set<String> getKeys() {
+        return null;
     }
 
     @Override

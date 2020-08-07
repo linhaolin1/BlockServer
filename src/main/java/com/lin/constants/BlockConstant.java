@@ -50,6 +50,8 @@ public class BlockConstant {
 	public static final Pattern PATTERN_NAME_ARRAY = Pattern.compile("[a-zA-Z0-9_\\u4e00-\\u9fa5]+\\[[0-9]+\\]");
 	public static final Pattern PATTERN_NAME_ARRAY_POSITION = Pattern.compile("\\[[0-9]+\\]");
 
+	public static final Pattern PATTERN_NAME_ARRAY_MAP_POSITION = Pattern.compile("\\[[a-zA-Z0-9_\\u4e00-\\u9fa5]+\\]");
+
 	public static final String PROCESS_SEQUENCE_STARTCALL = "startCall";
 	public static final String PROCESS_SEQUENCE_LOADCLASS = "loadClass";
 	public static final String PROCESS_SEQUENCE_LOADDATA = "loadData";

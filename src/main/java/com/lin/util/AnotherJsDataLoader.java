@@ -108,6 +108,10 @@ public class AnotherJsDataLoader implements DataloaderInterface {
     public Object parseJsonValue(String pa){
         return parseValue(pa);
     }
+    public String parseStringValue(String pa){
+        return parseValue(pa);
+    }
+
 
     public void put(String name, Object value) {
         context.eval("js",putStr(name, value));
@@ -545,6 +549,11 @@ public class AnotherJsDataLoader implements DataloaderInterface {
     @Override
     public void releaseLock() {
 
+    }
+
+    @Override
+    public Set<String> getKeys() {
+        return null;
     }
 
     @Override

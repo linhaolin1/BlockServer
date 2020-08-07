@@ -6,13 +6,14 @@
 		<result column="name" property="name" />
 		<result column="block" property="block" />
 		<result column="value" property="value" />
-		<result column="position" property="position" />
+		<result column="type" property="type" />
+		<result column="priority" property="priority" />
 	</resultMap>
 
 	<insert id="addToTemp" parameterType="com.lin.entity.NextEntity" useGeneratedKeys="true" keyProperty="id">
-		insert into Next (id,name,block,value,position) values(
+		insert into Next (id,name,block,value,type,priority) values(
 		#{id},#{name},#{block},
-		#{value},#{position} )
+		#{value},#{type},#{priority} )
 	</insert>
 
 	<select id="findFromTempByBlock" resultMap="next" parameterType="int">
@@ -33,7 +34,7 @@
 
 	<update id="updateToTemp" parameterType="com.lin.entity.NextEntity">
 		update Next set
-		name=#{name},block=#{block},value=#{value},position=#{position}
+		name=#{name},block=#{block},value=#{value},position=#{type},position=#{priority}
 		where id=#{id}
 	</update>
 

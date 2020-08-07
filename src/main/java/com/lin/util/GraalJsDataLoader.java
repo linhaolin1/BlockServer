@@ -2,17 +2,14 @@ package com.lin.util;
 
 import com.alibaba.fastjson.JSON;
 import com.lin.constants.BlockConstant;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import stormpot.Slot;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 
 public class GraalJsDataLoader implements DataloaderInterface {
@@ -22,6 +19,7 @@ public class GraalJsDataLoader implements DataloaderInterface {
     Context context;
     Map<String, Value> evalMap;
     Map<String, List<String>> evalParamMap;
+    Set<String> keys = new LinkedHashSet<String>();
 
     public GraalJsDataLoader(Slot slot) {
         this.slot = slot;
@@ -57,7 +55,6 @@ public class GraalJsDataLoader implements DataloaderInterface {
         g.context.eval("js", "a={},a.a= 1;");
         Value v = g.context.getBindings("js");
 
-        System.out.println(g.context.eval("js", "a.a").toString());
 
         Map map = new HashMap();
         map.put("price", 5);
@@ -159,6 +156,21 @@ public class GraalJsDataLoader implements DataloaderInterface {
         }
     }
 
+    public String parseStringValue(String pa) {
+        if (!isNeedJs(pa)) {
+            return pa;
+        }
+        List<String> paramList = new ArrayList();
+        String s = parseBracket(pa, paramList, DefaultStartAscii);
+        Value[] params = new Value[paramList.size()];
+
+        for (int i = 0; i < paramList.size(); i++) {
+            params[i] = context.getBindings("js").getMember(paramList.get(i));
+            s = s.replace(String.valueOf((char) (DefaultStartAscii + i)), params[i].toString());
+        }
+        return s;
+    }
+
     public Value parseValue(String pa) {
         Value v = null;
         if (!isNeedJs(pa)) {
@@ -182,6 +194,8 @@ public class GraalJsDataLoader implements DataloaderInterface {
             sb.append(s);
             sb.append("; })");
             v = context.eval("js", sb.toString());
+
+
             evalMap.put(pa, v);
             evalParamMap.put(pa, paramList);
         }
@@ -230,101 +244,93 @@ public class GraalJsDataLoader implements DataloaderInterface {
         return parseBracket(value, paramList, ascii);
     }
 
-//    public void put(String name, Object value) {
-//        name=parseValue(name).toString();
-//
-//        if (value instanceof Map) {
-//            Map map = (Map) value;
-//            context.getBindings("js").putMember(name, new MapProxyObject(map));
-//        } else if (value instanceof List) {
-//            List list = (List) value;
-//            if (list.get(0) instanceof Map) {
-//                ProxyObject[] objects = new ProxyObject[list.size()];
-//                for (int i = 0; i < list.size(); i++) {
-//                    objects[i] = new MapProxyObject((Map) list.get(i));
-//                }
-//                context.getBindings("js").putMember(name, objects);
-//            } else {
-//                context.getBindings("js").putMember(name, Value.asValue(value));
-//            }
-//        } else if (value.getClass().isArray()) {
-//            if (Map.class.isAssignableFrom(value.getClass().getComponentType())) {
-//                ProxyObject[] objects = new ProxyObject[Array.getLength(value)];
-//                for (int i = 0; i < Array.getLength(value); i++) {
-//                    objects[i] = new MapProxyObject((Map) Array.get(value, i));
-//                }
-//                context.getBindings("js").putMember(name, objects);
-//            } else {
-//                context.getBindings("js").putMember(name, Value.asValue(value));
-//            }
-//        } else {
-//            try {
-//                if (NumberUtils.isParsable(String.valueOf(value))) {
-//                    context.getBindings("js").putMember(name, Value.asValue(Double.parseDouble(value.toString())));
-//                }else{
-//                    context.getBindings("js").putMember(name, Value.asValue(value));
-//                }
-//            } catch (Exception e) {
-//                context.getBindings("js").putMember(name, Value.asValue(value));
-//            }
-//        }
-//    }
-
-    public void put(String name, Object value) {
-        context.eval("js", putStr(name, value));
-//        keys.add(name);
-    }
-
-    public String putStr(String name, Object value) {
-        StringBuilder scriptStr = new StringBuilder();
-
-        Matcher ma = BlockConstant.PATTERN_NAME_ARRAY.matcher(name);
-        while (ma.find()) {
-            String group = ma.group();
-            Matcher ma2 = BlockConstant.PATTERN_NAME_ARRAY_POSITION.matcher(group);
-            ma2.find();
-            String preName = name.substring(0, ma.start() + ma2.start());
-            if ("true".equals(String.valueOf(context.eval("js", "typeof " + preName + "=='undefined'")))) {
-                scriptStr.append(preName + " = [];");
-            }
+    public Object transferValue(Object value) {
+        if (value == null) {
+            return null;
         }
-
-        String[] splitByDot = name.split("\\.");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < splitByDot.length - 1; i++) {
-            String dot = splitByDot[i];
-            sb.append(dot);
-            if ("true".equals(String.valueOf(context.eval("js", "typeof " + sb.toString() + "=='undefined'")))) {
-                scriptStr.append(sb.toString() + " = {};");
-            }
-            sb.append(".");
-        }
-
-        if (value instanceof String) {
-            String valString = (String) value;
-            valString = valString.replace("\n", "");
-
-            if (valString.startsWith("[") || valString.startsWith("{") || valString.startsWith("\"")|| StringUtils.isNumeric(valString)) {
-                scriptStr.append(name + "=" + valString + ";");
-            } else {
-                if (valString.indexOf("\"") != -1 && valString.indexOf("") == -1) {
-                    scriptStr.append(name + "='" + valString + "';");
-                } else if (valString.indexOf("'") != -1 && valString.indexOf("\"") == -1) {
-                    scriptStr.append(name + "=\"" + valString + "\";");
-                } else if (valString.indexOf("'") != -1 && valString.indexOf("\"") != -1) {
-                    scriptStr.append(name + "=\"" + valString.replace("\"", "\\\"") + "\";");
-                } else {
-                    scriptStr.append(name + "='" + valString + "';");
+        if (value instanceof Map) {
+            Map map = (Map) value;
+            return new MapProxyObject(map);
+        } else if (value instanceof List) {
+            List list = (List) value;
+            if (list.get(0) instanceof Map) {
+                ProxyObject[] objects = new ProxyObject[list.size()];
+                for (int i = 0; i < list.size(); i++) {
+                    objects[i] = new MapProxyObject((Map) list.get(i));
                 }
+                return objects;
+            } else {
+                return Value.asValue(value);
+            }
+        } else if (value.getClass().isArray()) {
+            if (Map.class.isAssignableFrom(value.getClass().getComponentType())) {
+                ProxyObject[] objects = new ProxyObject[Array.getLength(value)];
+                for (int i = 0; i < Array.getLength(value); i++) {
+                    objects[i] = new MapProxyObject((Map) Array.get(value, i));
+                }
+                return objects;
+            } else {
+                return Value.asValue(value);
             }
         } else {
-            scriptStr.append(name + "=" + JSON.toJSONStringWithDateFormat(value, "yyyy-MM-dd HH:mm:ss") + ";");
+            try {
+                if (NumberUtils.isParsable(String.valueOf(value))) {
+                    return Value.asValue(Double.parseDouble(value.toString()));
+                } else {
+                    return Value.asValue(value);
+                }
+            } catch (Exception e) {
+                return Value.asValue(value);
+            }
+        }
+    }
+
+    public void put(String name, Object value) {
+        keys.add(name);
+        putStr(name, value);
+    }
+
+    public void putStr(String name, Object value) {
+        name = parseValue(name).toString();
+        Value object = context.getBindings("js");
+        StringBuilder sb = new StringBuilder();
+
+        String[] splitByDot = name.split("\\.");
+        List<String> list = new ArrayList();
+        for (int i = 0; i < splitByDot.length; i++) {
+            String dot = splitByDot[i];
+            Matcher m = BlockConstant.PATTERN_NAME_ARRAY_MAP_POSITION.matcher(dot);
+
+            int end = 0;
+            while (m.find()) {
+                String preStr = dot.substring(end, m.start());
+                if (preStr.length() > 0) {
+                    list.add(preStr);
+                }
+                end = m.end();
+                String matchedStr = m.group();
+                list.add(matchedStr.substring(1, matchedStr.length() - 1));
+            }
+            if (end < dot.length()) {
+                list.add(dot.substring(end));
+            }
+        }
+        for (int i = 0; i < list.size() - 1; i++) {
+            String preStr = list.get(i);
+            if (!object.hasMember(preStr)) {
+                Value v = Value.asValue(new MapProxyObject());
+                object.putMember(preStr, v);
+            }
+            object = object.getMember(preStr);
         }
 
-        return scriptStr.toString();
+        object.putMember(list.get(list.size() - 1), transferValue(value));
     }
 
     public void putAll(Map<String, Object> object) {
+        if (object == null) {
+            return;
+        }
         for (Map.Entry<String, Object> e : object.entrySet()) {
             put(e.getKey(), e.getValue());
         }
@@ -359,8 +365,17 @@ public class GraalJsDataLoader implements DataloaderInterface {
 
     }
 
+    @Override
+    public Set<String> getKeys() {
+        return keys;
+    }
+
     public static class MapProxyObject implements ProxyObject {
         private final Map<String, Object> values;
+
+        public MapProxyObject() {
+            this.values = new HashMap();
+        }
 
         public MapProxyObject(Map<String, Object> values) {
             if (values == null) {

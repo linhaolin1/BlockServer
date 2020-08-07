@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -87,9 +88,43 @@ public class ProcessServiceImpl implements ProcessService {
         if (block == null) {
             System.out.println("startblock is null, id=" + process.getStartBlock());
         }
-        Integer i = 0;
-        while ((i = executeService.executeBlock(block, loader, sequenceId, resp)) != -1) {
-            block = (BlockEntity) EntityListUtil.findFromList(resp.getBlocks(), "id", i);
+        execute(block, loader, sequenceId, resp);
+    }
+
+    private void execute(BlockEntity block, DataloaderInterface loader, Long sequenceId, ExportProcessResp resp) throws InvocationTargetException {
+        List<NextEntity> nextEntityList;
+        while ((nextEntityList = executeService.executeBlock(block, loader, sequenceId, resp)).size() > 0) {
+
+            System.out.println(block.getId());
+
+            block = (BlockEntity) EntityListUtil.findFromList(resp.getBlocks(), "id", nextEntityList.get(0).getValue());
+            execute(block, loader, sequenceId, resp);
+
+            List<NextEntity> asyncList = nextEntityList.stream().filter(x -> {
+                if (x.getType() > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }).collect(Collectors.toList());
+
+            for (NextEntity ne : asyncList) {
+                new Thread() {
+                    public void run() {
+                        BlockEntity newBlock = (BlockEntity) EntityListUtil.findFromList(resp.getBlocks(), "id", ne.getValue());
+                        DataloaderInterface newLoader = dataloaderPool.claim();
+                        for (String key : loader.getKeys()) {
+                            newLoader.put(key, loader.get(key));
+                        }
+                        try {
+                            execute(newBlock, newLoader, sequenceId, resp);
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                        newLoader.release();
+                    }
+                }.start();
+            }
         }
     }
 
@@ -113,7 +148,9 @@ public class ProcessServiceImpl implements ProcessService {
             sequenceService.save("LOAD PROCESS", 1L, System.currentTimeMillis() - time,
                     req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
             time = System.currentTimeMillis();
+
             executeProcess(process, loader, sequenceId);
+
             sequenceService.save("EXECUTE PROCESS", 1L, System.currentTimeMillis() - time,
                     req.getProcessId(), null, null, JSON.toJSONString(req.getObject()));
             time = System.currentTimeMillis();
@@ -123,7 +160,7 @@ public class ProcessServiceImpl implements ProcessService {
 
             for (ProcessArgumentEntity arg : args) {
                 if (arg.getType() == BlockConstant.args_type_output) {
-                    Object object=loader.parseJsonValue("{" + arg.getName() + "}");
+                    Object object = loader.parseJsonValue("{" + arg.getName() + "}");
                     map.put(arg.getName(), object);
 //                    if (object!=null){
 //                        try {

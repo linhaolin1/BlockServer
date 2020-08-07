@@ -313,6 +313,7 @@ jsPlumb.ready(function () {
 				// addRectDiv();
 				//addThreeEndPoint();
 				//addOneSourcePoint();
+
 				if(!blockId){
 					addBlock(data.block.id,name);
 				}else{
@@ -1101,7 +1102,12 @@ jsPlumb.ready(function () {
 			showlog("请填写参数名称");
 			return;
 		}
+
+
+
 		var blockId=$("div.subpanel.new-block").attr("belong-id");
+		console.log("???")
+		console.log(blockId)
 		saveOrUpdateBlock(argsName,blockId);
 		$(".new-block").hide();
 		$("div.subpanel.new-block > div.panel > div.panel-body > div.input-group > input").val("");
