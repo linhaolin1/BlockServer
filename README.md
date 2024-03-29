@@ -14,7 +14,7 @@
 2. 积木的业务流程变更为即时起效，因此不需要额外的编译/测试/部署  
 3. 积木的技术组件可生成为单独的文件，并且能直接在流程图中调用，能够更好的进行重用
 
-<div align="center"><img src="http://106.52.110.245/images/process.png"/></div>
+![image](https://github.com/linhaolin1/BlockServer/assets/14798395/69198be1-190c-4b61-99fd-03b0fb29a870)
 
 ## 构成
 积木的构成主要包含业务和技术组件2部分
