@@ -34,11 +34,11 @@
 4.根据流程输出参数，设置输出内容
 ```
 
-参考：[创建支付订单流程](http://106.52.110.245/management/flowchart.html?processId=12)
+参考：[创建支付订单流程](http://110.42.239.224:8090/management/flowchart.html?processId=12)
 
 
 ####测试流程
-1. 在[management/list.html](http://106.52.110.245/management/list.html)中创建一个流程，并输入流程名，点击确定按钮
+1. 在[management/list.html](http://110.42.239.224:8090/management/list.html)中创建一个流程，并输入流程名，点击确定按钮
 2. 在流程输入参数中填写需要的参数名，在流程输出参数中填写需要输出的参数名
 3. 点击`新的流程分块` 输入名称，点击确定按钮，创建一个新的功能块
 4. 拖动新的功能块（新创建的功能块在该区域左上角）到需要的位置，点击新功能块中间的名称，点击下拉菜单中的`+`，选择添加执行块以及执行块所对应的技术组件
@@ -50,7 +50,7 @@
 
 
 调用方法：  
-http post请求 ： http://106.52.110.245:8090/block-server/jsonRequest    
+http post请求 ： http://110.42.239.224:8090/block-server/jsonRequest    
 json化body内容
 ```json
  {"processId":"{地址栏中的流程id}","object":{"货物表":[],"用户token":"XX","名称":"lin","电话":"186XXXXXXXX","地址":"广东省广州市白云区XXXX"}}
