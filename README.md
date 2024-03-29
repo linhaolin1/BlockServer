@@ -64,7 +64,7 @@ sdk参考[blockSdk](https://github.com/linhaolin1/BlockServer/tree/master/sdk/bl
 demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/demo/plugins)
 
 ## 案例
-流程设计展示：http://106.52.110.245/management/list.html
+流程设计展示：http://110.42.239.224:8090/management/list.html
 
 ## 系统本身
 系统本身使用Netty+spring+mybatis完成基本内容  
@@ -72,6 +72,9 @@ demo组件参考[plugins](https://github.com/linhaolin1/BlockServer/tree/master/
 
 ## 部署
 1.下载项目
+
 2.安装JAVA(>=1.8，推荐openjdk),MAVEN,docker和docker-compose
+
 3.执行build.sh
+
 4.在output/docker下启动docker-compose up
